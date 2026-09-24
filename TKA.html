@@ -1,0 +1,1862 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,maximum-scale=1,user-scalable=no">
+<meta name="theme-color" content="#E8F0FA">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Latihan TKA — Tes Kemampuan Akademik</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<style>
+:root {
+  --navy: #1F2937;
+  --blue: #4A90E2;
+  --blue-light: #E8F0FA;
+  --blue-pale: #D6E4F5;
+  --blue-lighter: #F0F6FC;
+  --yellow: #FFD93D;
+  --yellow-dark: #F5B800;
+  --pink: #FFB6D9;
+  --green: #10B981;
+  --green-light: #D1FAE5;
+  --red: #EF4444;
+  --red-light: #FEE2E2;
+  --orange: #FF8C42;
+  --text: #1F2937;
+  --text-muted: #6B7280;
+  --text-subtle: #9CA3AF;
+  --bg: #F0F6FC;
+  --radius: 16px;
+  --radius-lg: 22px;
+  --radius-xl: 28px;
+  --shadow-sm: 0 2px 6px rgba(74,144,226,0.08);
+  --shadow: 0 4px 14px rgba(74,144,226,0.12);
+  --shadow-lg: 0 12px 32px rgba(74,144,226,0.18);
+  --shadow-dark: 0 8px 20px rgba(31,41,55,0.25);
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  font-family: 'Nunito', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg); color: var(--text); font-size: 15px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased; overflow-x: hidden;
+  min-height: 100vh; min-height: 100dvh;
+}
+.app {
+  width: 100%; max-width: 440px; margin: 0 auto; background: var(--bg);
+  min-height: 100vh; min-height: 100dvh; display: flex; flex-direction: column;
+  position: relative; overflow: hidden;
+}
+@media (min-width: 768px) {
+  body { padding: 20px 16px; display: flex; align-items: center; justify-content: center;
+    background: linear-gradient(135deg, #E8F0FA 0%, #D6E4F5 100%); }
+  .app { min-height: auto; height: calc(100vh - 40px); max-height: 880px;
+    border-radius: 40px; box-shadow: 0 32px 80px rgba(31,41,55,0.25); overflow: hidden; }
+}
+.hidden { display: none !important; }
+
+/* SPLASH */
+.splash-view {
+  position: fixed; inset: 0; z-index: 9999;
+  background: linear-gradient(160deg, #E8F0FA 0%, #D6E4F5 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  transition: opacity 0.6s, transform 0.6s;
+  padding: 24px;
+}
+.splash-view.fade-out { opacity: 0; transform: scale(1.1); pointer-events: none; }
+.splash-logo { font-size: 5rem; margin-bottom: 16px;
+  animation: splashBounce 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes splashBounce {
+  0% { transform: scale(0) rotate(-180deg); }
+  60% { transform: scale(1.2) rotate(10deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.splash-title { font-size: 2.2rem; font-weight: 900; color: var(--navy); letter-spacing: -0.03em;
+  animation: fadeUp 0.6s 0.3s backwards; text-align: center; }
+.splash-sub { font-size: 0.9rem; color: var(--text-muted); font-weight: 600; margin-top: 8px;
+  animation: fadeUp 0.6s 0.5s backwards; text-align: center; }
+@keyframes fadeUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+.splash-loader { margin-top: 28px; display: flex; gap: 6px; }
+.splash-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--blue);
+  animation: splashDot 1.2s infinite; }
+.splash-dot:nth-child(2) { animation-delay: 0.15s; }
+.splash-dot:nth-child(3) { animation-delay: 0.3s; }
+@keyframes splashDot { 0%, 100% { transform: scale(1); opacity: 0.4; } 50% { transform: scale(1.4); opacity: 1; } }
+
+/* Logo sayaguru.id di splash */
+.splash-partner {
+  position: absolute;
+  bottom: 60px;
+  left: 0;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  animation: fadeUp 0.6s 0.8s backwards;
+}
+.splash-partner img {
+  max-width: 140px;
+  height: auto;
+  opacity: 0.9;
+  filter: drop-shadow(0 4px 8px rgba(0,0,0,0.08));
+}
+.splash-partner-text {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 700;
+  text-align: center;
+}
+
+/* Copyright di bawah */
+.splash-copyright {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  text-align: center;
+  font-size: 0.7rem;
+  color: var(--text-subtle);
+  font-weight: 700;
+  animation: fadeUp 0.6s 1s backwards;
+}
+
+/* STATUS BAR — hanya jam, tanpa sinyal/wifi/baterai */
+.status-bar {
+  display: flex; justify-content: center; align-items: center;
+  padding: 12px 24px 0; padding-top: calc(12px + var(--safe-top));
+  font-size: 0.75rem; font-weight: 800; color: var(--navy);
+  position: relative; z-index: 5;
+}
+
+/* SCREEN */
+.screen { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overscroll-behavior: contain; position: relative; padding-bottom: 100px; }
+.screen::-webkit-scrollbar { display: none; }
+
+/* ONBOARDING */
+.onboarding-view {
+  background: linear-gradient(180deg, #E8F0FA 0%, #D6E4F5 60%, #FFFFFF 100%);
+  min-height: 100vh; min-height: 100dvh; position: relative; overflow: hidden;
+}
+.onboarding-view::before {
+  content: ''; position: absolute; top: -100px; left: -100px;
+  width: 300px; height: 300px;
+  background: radial-gradient(circle, rgba(255,217,61,0.4), transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.onboarding-view::after {
+  content: ''; position: absolute; top: 120px; right: -80px;
+  width: 250px; height: 250px;
+  background: radial-gradient(circle, rgba(255,182,217,0.35), transparent 70%);
+  border-radius: 50%; pointer-events: none;
+}
+.onboarding-header { display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 24px; position: relative; z-index: 5; }
+.brand { display: flex; align-items: center; gap: 6px; font-size: 1.4rem;
+  font-weight: 900; color: var(--navy); letter-spacing: -0.03em; }
+.brand-emoji { font-size: 1.5rem; animation: floatY 3s ease-in-out infinite; }
+@keyframes floatY {
+  0%, 100% { transform: translateY(0) rotate(-3deg); }
+  50% { transform: translateY(-6px) rotate(3deg); }
+}
+.skip-btn { background: transparent; border: none; color: var(--navy);
+  font-family: inherit; font-size: 0.95rem; font-weight: 800; cursor: pointer; padding: 8px 12px; }
+
+.onboarding-hero { position: relative; padding: 20px 24px;
+  display: flex; flex-direction: column; align-items: center; min-height: 380px; z-index: 2; }
+.speech-bubble { position: relative;
+  background: linear-gradient(135deg, #A8D8F0 0%, #7FC5E8 100%);
+  border-radius: 28px; padding: 22px 24px;
+  box-shadow: 0 12px 28px rgba(74,144,226,0.25);
+  max-width: 320px; width: 100%; transform: rotate(-2deg);
+  animation: bubbleIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+@keyframes bubbleIn {
+  from { transform: rotate(-8deg) scale(0.7); opacity: 0; }
+  to { transform: rotate(-2deg) scale(1); opacity: 1; }
+}
+.speech-bubble::after { content: ''; position: absolute; bottom: -18px; left: 40px;
+  width: 0; height: 0; border-left: 16px solid transparent; border-right: 16px solid transparent;
+  border-top: 22px solid #7FC5E8; filter: drop-shadow(0 4px 6px rgba(74,144,226,0.15)); }
+.speech-lightbulb { position: absolute; top: -18px; left: -14px;
+  width: 42px; height: 42px; border-radius: 50%; background: white;
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  box-shadow: 0 6px 16px rgba(74,144,226,0.2); z-index: 2; }
+.speech-title { font-size: 1.6rem; font-weight: 900; color: white; line-height: 1.1;
+  letter-spacing: -0.02em; margin-bottom: 8px; text-shadow: 0 2px 4px rgba(0,0,0,0.05); }
+.speech-sub { font-size: 0.85rem; color: rgba(255,255,255,0.95); font-weight: 600; line-height: 1.4; }
+.hero-trophy { font-size: 7rem; line-height: 1; margin: 30px 0 20px;
+  filter: drop-shadow(0 20px 30px rgba(74,144,226,0.3));
+  animation: trophyFloat 3s ease-in-out infinite; }
+@keyframes trophyFloat {
+  0%, 100% { transform: translateY(0) rotate(-5deg); }
+  50% { transform: translateY(-14px) rotate(5deg); }
+}
+.sparkle { position: absolute; font-size: 1.2rem; animation: sparkleAnim 2s ease-in-out infinite; }
+.sparkle.s1 { top: 30px; left: 40px; animation-delay: 0s; }
+.sparkle.s2 { top: 80px; right: 60px; animation-delay: 0.5s; }
+.sparkle.s3 { bottom: 60px; left: 50px; animation-delay: 1s; }
+.sparkle.s4 { top: 200px; right: 30px; animation-delay: 1.5s; }
+@keyframes sparkleAnim {
+  0%, 100% { opacity: 0.3; transform: scale(0.8) rotate(0deg); }
+  50% { opacity: 1; transform: scale(1.2) rotate(20deg); }
+}
+.onboarding-bottom { position: absolute; bottom: 0; left: 0; right: 0;
+  background: white; border-radius: 40px 40px 0 0;
+  padding: 32px 24px 24px; padding-bottom: calc(24px + var(--safe-bottom));
+  box-shadow: 0 -10px 40px rgba(74,144,226,0.15); z-index: 10;
+  animation: slideUpBottom 0.6s 0.2s cubic-bezier(0.34, 1.56, 0.64, 1) backwards; }
+@keyframes slideUpBottom { from { transform: translateY(100%); } to { transform: translateY(0); } }
+.onb-title { font-size: 1.7rem; font-weight: 900; color: var(--navy);
+  letter-spacing: -0.03em; line-height: 1.15; text-align: center; margin-bottom: 10px; }
+.onb-desc { font-size: 0.85rem; color: var(--text-muted); text-align: center;
+  line-height: 1.5; margin-bottom: 22px; font-weight: 600; padding: 0 10px; }
+.onb-dots { display: flex; justify-content: center; gap: 6px; margin-bottom: 20px; }
+.onb-dot { width: 8px; height: 8px; border-radius: 999px; background: #E5E7EB;
+  transition: all 0.3s; }
+.onb-dot.active { width: 24px; background: var(--navy); }
+.onb-actions { display: flex; gap: 10px; align-items: center; }
+.onb-back { width: 56px; height: 56px; border-radius: 50%; background: white;
+  border: 2px solid #E5E7EB; display: flex; align-items: center; justify-content: center;
+  font-size: 1.2rem; cursor: pointer; transition: transform 0.15s, border-color 0.2s;
+  color: var(--navy); font-weight: 700; flex-shrink: 0; }
+.onb-back:active { transform: scale(0.92); border-color: var(--navy); }
+.onb-cta { flex: 1; height: 56px; border-radius: 999px; background: var(--navy);
+  color: white; border: none; font-family: inherit; font-size: 1rem; font-weight: 800;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  gap: 10px; transition: transform 0.15s; box-shadow: var(--shadow-dark);
+  position: relative; overflow: hidden; padding-left: 50px; padding-right: 50px; }
+.onb-cta::before { content: '💡'; position: absolute; left: 8px;
+  width: 36px; height: 36px; border-radius: 50%;
+  background: linear-gradient(135deg, #A8D8F0, #7FC5E8);
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem; }
+.onb-cta span { position: relative; z-index: 2; }
+.onb-cta:active { transform: scale(0.97); }
+.onb-cta-arrow { position: absolute; right: 18px; font-size: 1.1rem;
+  opacity: 0.7; animation: arrowBounce 1.5s infinite; }
+@keyframes arrowBounce { 0%, 100% { transform: translateX(0); } 50% { transform: translateX(4px); } }
+
+/* HOME */
+.home-view { background: var(--bg); min-height: 100vh; min-height: 100dvh;
+  padding-bottom: 100px; position: relative; }
+.home-view::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 300px; background: linear-gradient(180deg, #E8F0FA 0%, transparent 100%);
+  pointer-events: none; }
+.home-header { display: flex; justify-content: space-between; align-items: center;
+  padding: 8px 20px; position: relative; z-index: 5; }
+.user-info { display: flex; align-items: center; gap: 10px; }
+.user-avatar { width: 44px; height: 44px; border-radius: 50%;
+  background: linear-gradient(135deg, #FFD93D, #FF8C42);
+  display: flex; align-items: center; justify-content: center; font-size: 1.4rem;
+  border: 2.5px solid white; box-shadow: var(--shadow); }
+.user-text { line-height: 1.2; }
+.user-name { font-size: 0.95rem; font-weight: 800; color: var(--navy); letter-spacing: -0.01em; }
+.user-role { font-size: 0.72rem; font-weight: 700; color: var(--text-muted);
+  padding: 1px 8px; background: white; border-radius: 999px; display: inline-block; margin-top: 2px; }
+.user-coins { display: flex; align-items: center; gap: 6px; padding: 8px 14px;
+  border-radius: 999px; background: white; font-weight: 800; font-size: 0.9rem;
+  color: var(--navy); box-shadow: var(--shadow-sm); }
+.user-coins .coin-icon { width: 22px; height: 22px; border-radius: 50%;
+  background: linear-gradient(135deg, #FFD93D, #F5B800);
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.75rem; border: 1.5px solid #F5B800; }
+.home-hero { margin: 16px 20px; border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #D6E4F5 0%, #B8D4F0 100%);
+  padding: 22px; position: relative; overflow: hidden; box-shadow: var(--shadow);
+  min-height: 180px; display: flex; flex-direction: column; justify-content: center; z-index: 2; }
+.home-hero::before { content: ''; position: absolute; top: -30px; right: -30px;
+  width: 140px; height: 140px;
+  background: radial-gradient(circle, rgba(255,255,255,0.6), transparent 70%);
+  border-radius: 50%; }
+.home-hero-title { font-size: 1.55rem; font-weight: 900; color: var(--navy);
+  letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 8px;
+  position: relative; z-index: 2; max-width: 60%; }
+.home-hero-title .highlight { color: #F5B800; }
+.home-hero-desc { font-size: 0.78rem; color: var(--navy); opacity: 0.75;
+  font-weight: 700; line-height: 1.4; position: relative; z-index: 2; max-width: 55%; }
+.home-hero-trophy { position: absolute; right: 12px; bottom: -10px; font-size: 6rem;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.15));
+  animation: trophyFloat 3s ease-in-out infinite; z-index: 1; }
+.section-head { display: flex; justify-content: space-between; align-items: center;
+  padding: 20px 20px 12px; position: relative; z-index: 2; }
+.section-head h2 { font-size: 1.05rem; font-weight: 900; color: var(--navy); letter-spacing: -0.02em; }
+.see-all { background: transparent; border: none; color: var(--text-muted);
+  font-family: inherit; font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+.game-card { margin: 0 20px 20px; border-radius: var(--radius-xl);
+  background: linear-gradient(135deg, #FFB6D9 0%, #FF8FBF 100%);
+  padding: 22px; position: relative; overflow: hidden; box-shadow: var(--shadow);
+  min-height: 200px; display: flex; flex-direction: column; z-index: 2; cursor: pointer;
+  transition: transform 0.2s; }
+.game-card:active { transform: scale(0.98); }
+.game-tag { display: inline-block; padding: 4px 14px; border-radius: 999px;
+  background: rgba(255,255,255,0.5); backdrop-filter: blur(10px);
+  font-size: 0.72rem; font-weight: 800; color: var(--navy);
+  align-self: flex-start; margin-bottom: 12px; position: relative; z-index: 2; }
+.game-title { font-size: 1.5rem; font-weight: 900; color: var(--navy);
+  letter-spacing: -0.03em; line-height: 1.1; margin-bottom: 6px;
+  position: relative; z-index: 2; max-width: 70%; }
+.game-title .highlight { color: white; }
+.game-desc { font-size: 0.78rem; color: var(--navy); opacity: 0.75;
+  font-weight: 700; line-height: 1.4; position: relative; z-index: 2; max-width: 65%; }
+.game-heart { position: absolute; top: 20px; right: 20px; width: 34px; height: 34px;
+  border-radius: 50%; background: rgba(255,255,255,0.5); backdrop-filter: blur(10px);
+  display: flex; align-items: center; justify-content: center; font-size: 1rem;
+  z-index: 3; border: none; cursor: pointer; }
+.game-play-btn { position: absolute; bottom: 20px; left: 22px; width: 48px; height: 48px;
+  border-radius: 50%; background: var(--navy); color: white;
+  display: flex; align-items: center; justify-content: center; font-size: 1.2rem;
+  z-index: 3; border: none; cursor: pointer; box-shadow: 0 6px 16px rgba(31,41,55,0.3);
+  transition: transform 0.15s; }
+.game-play-btn:active { transform: scale(0.9); }
+.game-3d { position: absolute; right: -10px; bottom: -10px; font-size: 6.5rem;
+  filter: drop-shadow(0 12px 20px rgba(0,0,0,0.2));
+  animation: floatY 3.5s ease-in-out infinite; z-index: 1; }
+
+/* LEADERBOARD */
+.leaderboard-view { background: var(--bg); min-height: 100vh; min-height: 100dvh;
+  padding-bottom: 100px; position: relative; overflow: hidden; }
+.leaderboard-view::before { content: ''; position: absolute; top: 0; left: 0; right: 0;
+  height: 500px; background:
+    radial-gradient(circle at 50% 30%, rgba(255,217,61,0.25), transparent 50%),
+    radial-gradient(circle at 20% 60%, rgba(255,182,217,0.25), transparent 50%),
+    radial-gradient(circle at 80% 60%, rgba(74,144,226,0.2), transparent 50%),
+    linear-gradient(180deg, #E8F0FA 0%, transparent 100%);
+  pointer-events: none; }
+.lb-header-pill { margin: 8px 20px 0; text-align: center; position: relative; z-index: 5; }
+.lb-month-badge { display: inline-block; padding: 5px 16px; border-radius: 999px;
+  background: var(--yellow); color: var(--navy); font-size: 0.75rem; font-weight: 900;
+  margin-bottom: 8px; box-shadow: 0 4px 12px rgba(255,217,61,0.4); }
+.lb-title-bar { background: linear-gradient(135deg, #B8D4F0 0%, #A0C8EC 100%);
+  border-radius: 999px; padding: 14px 24px; font-size: 1.2rem; font-weight: 900;
+  color: var(--navy); letter-spacing: -0.02em; box-shadow: var(--shadow-sm); text-align: center; }
+.podium { display: flex; align-items: flex-end; justify-content: center; gap: 6px;
+  padding: 24px 16px 0; position: relative; z-index: 2; }
+.podium-slot { flex: 1; display: flex; flex-direction: column; align-items: center;
+  position: relative; max-width: 120px; }
+.podium-avatar-wrap { position: relative; margin-bottom: 6px; }
+.podium-avatar { width: 56px; height: 56px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.6rem;
+  border: 3px solid white; box-shadow: 0 6px 16px rgba(0,0,0,0.15);
+  position: relative; z-index: 2; }
+.podium-slot.first .podium-avatar { width: 72px; height: 72px; font-size: 2rem;
+  background: linear-gradient(135deg, #FFD93D, #FF8C42); }
+.podium-slot.second .podium-avatar { background: linear-gradient(135deg, #FFE082, #FFD93D); }
+.podium-slot.third .podium-avatar { background: linear-gradient(135deg, #FFB6D9, #FF8FBF); }
+.podium-rank-badge { position: absolute; top: -4px; right: -4px; width: 24px; height: 24px;
+  border-radius: 50%; background: white; color: var(--navy); font-size: 0.72rem;
+  font-weight: 900; display: flex; align-items: center; justify-content: center;
+  border: 2px solid; z-index: 3; box-shadow: 0 3px 8px rgba(0,0,0,0.15); }
+.podium-slot.first .podium-rank-badge { border-color: #FFD93D; }
+.podium-slot.second .podium-rank-badge { border-color: #FFE082; }
+.podium-slot.third .podium-rank-badge { border-color: #FFB6D9; }
+.podium-name { font-size: 0.78rem; font-weight: 900; color: var(--navy);
+  text-align: center; margin-bottom: 4px; white-space: nowrap; overflow: hidden;
+  text-overflow: ellipsis; max-width: 100%; }
+.podium-coins { display: inline-flex; align-items: center; gap: 3px;
+  padding: 3px 10px; border-radius: 999px; background: white; font-size: 0.68rem;
+  font-weight: 900; color: var(--navy); margin-bottom: 10px;
+  box-shadow: var(--shadow-sm); border: 1.5px solid #F5B800; }
+.podium-bar { width: 100%; border-radius: var(--radius) var(--radius) 0 0;
+  display: flex; align-items: flex-start; justify-content: center; padding-top: 10px;
+  font-weight: 900; font-size: 1.3rem; color: white; position: relative;
+  box-shadow: 0 -4px 12px rgba(0,0,0,0.08); }
+.podium-slot.first .podium-bar { background: linear-gradient(180deg, #FFD93D 0%, #F5B800 100%); height: 80px; }
+.podium-slot.second .podium-bar { background: linear-gradient(180deg, #FFE082 0%, #FFD93D 100%); height: 60px; }
+.podium-slot.third .podium-bar { background: linear-gradient(180deg, #FFB6D9 0%, #FF8FBF 100%); height: 45px; }
+.lb-list-wrap { background: var(--bg); padding: 20px 20px 0;
+  position: relative; z-index: 2; margin-top: -8px; }
+.lb-list { display: flex; flex-direction: column; gap: 10px; padding-bottom: 20px; }
+.lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 14px;
+  background: white; border-radius: var(--radius-lg); box-shadow: var(--shadow-sm);
+  animation: slideIn 0.4s backwards; border: 1.5px solid #F0F6FC; }
+@keyframes slideIn {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+.lb-rank { font-size: 0.85rem; font-weight: 900; color: var(--text-muted);
+  width: 28px; flex-shrink: 0; text-align: center; }
+.lb-avatar { width: 42px; height: 42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; font-size: 1.3rem;
+  flex-shrink: 0; background: var(--blue-lighter); border: 2px solid white;
+  box-shadow: var(--shadow-sm); }
+.lb-info { flex: 1; min-width: 0; }
+.lb-name { font-size: 0.88rem; font-weight: 900; color: var(--navy);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.lb-coins-pill { display: inline-flex; align-items: center; gap: 3px;
+  padding: 2px 10px; border-radius: 999px; background: var(--blue-lighter);
+  font-size: 0.7rem; font-weight: 900; color: var(--navy);
+  margin-top: 2px; border: 1.5px solid var(--blue-pale); }
+.lb-trend { font-size: 1rem; flex-shrink: 0; width: 24px; text-align: center; }
+.lb-trend.up { color: var(--green); }
+.lb-trend.down { color: var(--red); }
+
+/* BOTTOM NAV (3 tab) */
+.bottom-nav { position: absolute; bottom: 0; left: 0; right: 0; background: white;
+  display: flex; justify-content: space-around; align-items: center; padding: 10px 8px;
+  padding-bottom: calc(10px + var(--safe-bottom));
+  box-shadow: 0 -6px 24px rgba(31,41,55,0.08); border-radius: 28px 28px 0 0; z-index: 50; }
+.nav-item { flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 3px; padding: 6px 4px; background: transparent; border: none;
+  font-family: inherit; cursor: pointer; transition: transform 0.15s;
+  border-radius: var(--radius); min-width: 0; }
+.nav-item:active { transform: scale(0.92); }
+.nav-icon { font-size: 1.25rem; transition: all 0.2s;
+  filter: grayscale(1) opacity(0.5); }
+.nav-label { font-size: 0.62rem; font-weight: 800; color: var(--text-subtle);
+  transition: color 0.2s; white-space: nowrap; }
+.nav-item.active .nav-icon { filter: none; transform: scale(1.15); }
+.nav-item.active .nav-label { color: var(--navy); }
+.nav-item.active { background: var(--blue-light); }
+
+/* SUB VIEWS */
+.sub-view { position: absolute; inset: 0; background: var(--bg); z-index: 100;
+  display: flex; flex-direction: column;
+  animation: slideInRight 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes slideInRight {
+  from { transform: translateX(100%); opacity: 0; }
+  to { transform: translateX(0); opacity: 1; }
+}
+.sub-view-header { display: flex; align-items: center; gap: 12px;
+  padding: 16px 20px; padding-top: calc(16px + var(--safe-top));
+  background: var(--bg); position: relative; z-index: 5; }
+.sub-back { width: 42px; height: 42px; border-radius: 50%; background: white;
+  border: none; display: flex; align-items: center; justify-content: center;
+  font-size: 1.1rem; cursor: pointer; box-shadow: var(--shadow-sm);
+  color: var(--navy); font-weight: 700; flex-shrink: 0; transition: transform 0.15s; }
+.sub-back:active { transform: scale(0.92); }
+.sub-title { font-size: 1.05rem; font-weight: 900; color: var(--navy);
+  letter-spacing: -0.02em; flex: 1; min-width: 0; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis; }
+.sub-body { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 0 20px 24px; }
+
+/* FORM */
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; font-size: 0.82rem; font-weight: 900;
+  color: var(--navy); margin-bottom: 8px; }
+.form-group input {
+  width: 100%; padding: 15px 18px; border: 2px solid var(--blue-pale);
+  border-radius: var(--radius); font-size: 16px; font-family: inherit;
+  font-weight: 700; background: white; color: var(--navy); min-height: 54px;
+  transition: border-color 0.2s, box-shadow 0.2s;
+}
+.form-group input:focus { outline: none; border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(74,144,226,0.15); }
+.form-group input::placeholder { color: var(--text-subtle); font-weight: 500; }
+.form-group input.invalid { border-color: var(--red);
+  box-shadow: 0 0 0 4px rgba(239,68,68,0.15); }
+.form-hint { font-size: 0.72rem; font-weight: 700; color: var(--red);
+  margin-top: 6px; display: none; }
+.form-hint.show { display: block; }
+
+/* DIFFICULTY */
+.diff-hero { border-radius: var(--radius-xl); padding: 22px; min-height: 160px;
+  display: flex; flex-direction: column; justify-content: flex-end;
+  position: relative; overflow: hidden; margin-bottom: 16px; color: white;
+  background: linear-gradient(135deg, #A8D8F0 0%, #4A90E2 100%); }
+.diff-hero-illus { position: absolute; top: 10px; right: 10px; font-size: 4.5rem;
+  filter: drop-shadow(0 10px 16px rgba(0,0,0,0.2));
+  animation: floatY 3s ease-in-out infinite; }
+.diff-hero h2 { font-size: 1.4rem; font-weight: 900; letter-spacing: -0.02em;
+  margin-bottom: 4px; position: relative; z-index: 2; }
+.diff-hero p { font-size: 0.78rem; opacity: 0.9; font-weight: 700; position: relative; z-index: 2; }
+.diff-list { display: flex; flex-direction: column; gap: 10px; }
+.diff-btn { display: flex; align-items: center; gap: 14px; padding: 14px 16px;
+  border: 2px solid white; background: white; border-radius: var(--radius-lg);
+  cursor: pointer; font-family: inherit; text-align: left; width: 100%;
+  transition: transform 0.15s, box-shadow 0.2s; box-shadow: var(--shadow-sm);
+  min-height: 70px; }
+.diff-btn:active:not(:disabled) { transform: scale(0.98); }
+.diff-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+.diff-icon { width: 44px; height: 44px; border-radius: 14px; display: flex;
+  align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
+.diff-btn.mudah .diff-icon { background: var(--green-light); }
+.diff-btn.sedang .diff-icon { background: #FEF3C7; }
+.diff-btn.susah .diff-icon { background: var(--red-light); }
+.diff-info { flex: 1; min-width: 0; }
+.diff-title { font-size: 0.92rem; font-weight: 900; color: var(--navy); letter-spacing: -0.01em; }
+.diff-count { font-size: 0.75rem; color: var(--text-muted); font-weight: 700; }
+.diff-arrow { font-size: 1.2rem; color: var(--text-subtle); font-weight: 700; }
+
+/* QUIZ */
+.quiz-topbar { display: flex; align-items: center; justify-content: space-between;
+  padding: 12px 20px; padding-top: calc(12px + var(--safe-top)); background: var(--bg); }
+.quiz-timer-pill { display: flex; align-items: center; gap: 5px;
+  padding: 8px 16px; border-radius: 999px; background: white; font-size: 0.88rem;
+  font-weight: 900; color: var(--blue); box-shadow: var(--shadow-sm);
+  font-variant-numeric: tabular-nums; border: 1.5px solid var(--blue-pale); }
+.quiz-timer-pill.warning { background: #FEF3C7; color: #B45309; border-color: #FCD34D; }
+.quiz-timer-pill.danger { background: var(--red-light); color: var(--red);
+  border-color: #FCA5A5; animation: pulseT 1s infinite; }
+@keyframes pulseT { 50% { opacity: 0.6; transform: scale(0.96); } }
+.quiz-progress-track { height: 6px; background: var(--blue-pale); margin: 0 20px;
+  border-radius: 999px; overflow: hidden; }
+.quiz-progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue), #7FC5E8);
+  transition: width 0.4s ease; border-radius: 999px; }
+.quiz-body { flex: 1; padding: 20px; display: flex; flex-direction: column;
+  justify-content: center; min-height: 0; overflow-y: auto; }
+.quiz-illus { font-size: 4rem; text-align: center; margin-bottom: 8px;
+  filter: drop-shadow(0 10px 16px rgba(74,144,226,0.2));
+  animation: floatY 3s ease-in-out infinite; }
+.quiz-counter { font-size: 0.72rem; font-weight: 900; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.1em; margin-bottom: 6px; }
+.quiz-q-text { font-size: 1.25rem; font-weight: 900; line-height: 1.3;
+  letter-spacing: -0.02em; color: var(--navy); margin-bottom: 20px; }
+.answers { display: flex; flex-direction: column; gap: 10px; }
+.answer-btn { width: 100%; padding: 15px 18px; border-radius: var(--radius);
+  background: white; color: var(--navy); border: 2px solid transparent;
+  font-family: inherit; font-size: 0.92rem; font-weight: 800; text-align: left;
+  cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 12px; min-height: 58px; animation: slideIn 0.35s backwards; }
+.answer-btn:nth-child(1) { animation-delay: 0.04s; }
+.answer-btn:nth-child(2) { animation-delay: 0.08s; }
+.answer-btn:nth-child(3) { animation-delay: 0.12s; }
+.answer-btn:nth-child(4) { animation-delay: 0.16s; }
+.answer-btn:active:not(:disabled) { transform: scale(0.98); border-color: var(--blue); }
+.answer-btn:disabled { cursor: not-allowed; }
+.answer-btn.correct { background: var(--green-light); border-color: var(--green); color: #065F46; }
+.answer-btn.wrong { background: var(--red-light); border-color: var(--red); color: #991B1B; }
+.answer-btn .check-icon { width: 26px; height: 26px; border-radius: 50%;
+  display: none; align-items: center; justify-content: center;
+  font-size: 0.8rem; font-weight: 900; flex-shrink: 0; color: white; }
+.answer-btn.correct .check-icon { display: flex; background: var(--green); }
+.answer-btn.wrong .check-icon { display: flex; background: var(--red); }
+.quiz-footer { padding: 12px 20px 20px; padding-bottom: calc(20px + var(--safe-bottom)); }
+.btn-primary { width: 100%; padding: 16px; border-radius: 999px; background: var(--navy);
+  color: white; border: none; font-family: inherit; font-size: 1rem; font-weight: 900;
+  cursor: pointer; transition: transform 0.15s; box-shadow: var(--shadow-dark);
+  letter-spacing: -0.01em; min-height: 54px; }
+.btn-primary:active { transform: scale(0.97); }
+.btn-primary.outline { background: transparent; color: var(--navy);
+  border: 2px solid var(--navy); box-shadow: none; }
+.btn-primary.blue { background: var(--blue); }
+.btn-primary:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* RESULT */
+.result-hero { position: relative; padding: 30px 20px 0;
+  display: flex; flex-direction: column; align-items: center;
+  min-height: 240px; justify-content: flex-end; }
+.result-trophy { font-size: 6rem;
+  filter: drop-shadow(0 16px 28px rgba(0,0,0,0.15));
+  animation: bounceIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes bounceIn {
+  0% { transform: scale(0) rotate(-30deg); }
+  60% { transform: scale(1.15) rotate(8deg); }
+  100% { transform: scale(1) rotate(0); }
+}
+.result-card { flex: 1; background: white; border-radius: 32px 32px 0 0;
+  padding: 26px 22px; padding-bottom: calc(26px + var(--safe-bottom));
+  margin-top: -20px; position: relative; z-index: 2;
+  box-shadow: 0 -10px 40px rgba(31,41,55,0.08); overflow-y: auto; }
+.result-card h2 { font-size: 1.5rem; font-weight: 900; letter-spacing: -0.02em;
+  text-align: center; color: var(--navy); margin-bottom: 8px; }
+.result-desc { font-size: 0.85rem; color: var(--text-muted);
+  text-align: center; line-height: 1.5; margin-bottom: 18px;
+  font-weight: 700; padding: 0 10px; }
+.result-coins { display: flex; align-items: center; gap: 8px;
+  padding: 10px 22px; border-radius: 999px; background: #FEF3C7;
+  color: var(--navy); font-weight: 900; font-size: 1rem;
+  margin: 0 auto 20px; border: 2px solid #FCD34D; width: fit-content; }
+.result-coins .coin-icon { width: 24px; height: 24px; border-radius: 50%;
+  background: linear-gradient(135deg, #FFD93D, #F5B800);
+  display: flex; align-items: center; justify-content: center; font-size: 0.8rem; }
+.result-stats-row { display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; margin-bottom: 18px; }
+.result-stat { padding: 12px 8px; border-radius: var(--radius);
+  background: var(--blue-lighter); text-align: center;
+  border: 1.5px solid var(--blue-pale); }
+.result-stat .val { font-size: 1.35rem; font-weight: 900; line-height: 1; }
+.result-stat .lbl { font-size: 0.65rem; color: var(--text-muted);
+  text-transform: uppercase; letter-spacing: 0.05em; font-weight: 800; margin-top: 4px; }
+.result-score-display { text-align: center; margin-bottom: 18px;
+  padding: 18px; border-radius: var(--radius-lg);
+  background: linear-gradient(135deg, #E8F0FA, #D6E4F5); }
+.result-score-display .score-val { font-size: 3rem; font-weight: 900;
+  color: var(--blue); line-height: 1; letter-spacing: -0.04em; }
+.result-score-display .score-lbl { font-size: 0.7rem; color: var(--blue);
+  text-transform: uppercase; letter-spacing: 0.1em; font-weight: 900; margin-top: 4px; }
+.review-section { text-align: left; margin-bottom: 18px; }
+.review-section h3 { font-size: 0.85rem; font-weight: 900;
+  margin-bottom: 10px; color: var(--navy); }
+.review-list { display: flex; flex-direction: column; gap: 8px;
+  max-height: 30vh; overflow-y: auto; }
+.review-item { padding: 12px 14px; border-radius: var(--radius);
+  background: var(--bg); font-size: 0.82rem; border-left: 4px solid; }
+.review-item.correct { border-left-color: var(--green); background: var(--green-light); }
+.review-item.wrong { border-left-color: var(--red); background: var(--red-light); }
+.review-q { font-weight: 800; color: var(--navy); margin-bottom: 6px;
+  line-height: 1.4; font-size: 0.8rem; }
+.review-a { font-size: 0.76rem; margin: 3px 0; line-height: 1.5; }
+.review-a.green { color: #047857; font-weight: 800; }
+.review-a.red { color: #B91C1C; font-weight: 800; }
+
+/* MODAL */
+.modal { position: fixed; inset: 0; background: rgba(31,41,55,0.55);
+  backdrop-filter: blur(6px); display: flex; align-items: center;
+  justify-content: center; z-index: 1000; padding: 24px; animation: fadeIn 0.2s; }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+.modal-content { background: white; border-radius: var(--radius-xl);
+  padding: 28px 22px; max-width: 360px; width: 100%; text-align: center;
+  animation: popIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1); }
+@keyframes popIn { from { transform: scale(0.85); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+.modal-icon { font-size: 2.8rem; margin-bottom: 12px; }
+.modal-content h2 { font-size: 1.15rem; font-weight: 900; margin-bottom: 8px; color: var(--navy); }
+.modal-content p { color: var(--text-muted); font-size: 0.85rem;
+  margin-bottom: 20px; line-height: 1.5; font-weight: 700; }
+.modal-actions { display: flex; gap: 10px; }
+.modal-actions .btn-primary { flex: 1; }
+
+/* TOAST */
+.toast-container { position: fixed; top: calc(16px + var(--safe-top));
+  left: 50%; transform: translateX(-50%); z-index: 9998;
+  display: flex; flex-direction: column; gap: 8px; pointer-events: none;
+  max-width: 90vw; }
+.toast { background: var(--navy); color: white; padding: 12px 22px;
+  border-radius: 999px; font-size: 0.85rem; font-weight: 800;
+  box-shadow: var(--shadow-lg);
+  animation: toastIn 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  pointer-events: auto; white-space: nowrap; }
+.toast.success { background: var(--green); }
+.toast.danger { background: var(--red); }
+.toast.warning { background: var(--yellow); color: var(--navy); }
+@keyframes toastIn {
+  from { transform: translateY(-24px) scale(0.9); opacity: 0; }
+  to { transform: translateY(0) scale(1); opacity: 1; }
+}
+#confetti-canvas { position: fixed; inset: 0; pointer-events: none; z-index: 9997; }
+.tab-warning { position: fixed; inset: 0;
+  background: linear-gradient(135deg, rgba(239,68,68,0.97), rgba(220,38,38,0.99));
+  color: white; display: flex; flex-direction: column; align-items: center;
+  justify-content: center; z-index: 9999; text-align: center; padding: 24px; }
+.tab-warning-icon { font-size: 4rem; margin-bottom: 16px; animation: shake 0.5s infinite; }
+@keyframes shake {
+  0%, 100% { transform: translateX(0) rotate(0); }
+  25% { transform: translateX(-10px) rotate(-5deg); }
+  75% { transform: translateX(10px) rotate(5deg); }
+}
+.tab-warning h2 { font-size: 1.4rem; font-weight: 900; margin-bottom: 8px; }
+.tab-warning p { font-size: 0.95rem; opacity: 0.95; max-width: 300px;
+  line-height: 1.6; font-weight: 700; }
+.sound-toggle { position: absolute; top: calc(12px + var(--safe-top));
+  right: 16px; z-index: 200; width: 36px; height: 36px; border-radius: 50%;
+  background: rgba(255,255,255,0.85); backdrop-filter: blur(8px); border: none;
+  display: flex; align-items: center; justify-content: center; font-size: 0.95rem;
+  cursor: pointer; box-shadow: var(--shadow-sm); transition: transform 0.15s; }
+.sound-toggle:active { transform: scale(0.9); }
+.sound-toggle.muted { opacity: 0.5; }
+.loading-view { display: flex; flex-direction: column; align-items: center;
+  justify-content: center; min-height: 100vh; min-height: 100dvh;
+  background: var(--bg); padding: 40px 20px; text-align: center; }
+.spinner { width: 48px; height: 48px; border: 4px solid var(--blue-pale);
+  border-top-color: var(--blue); border-radius: 50%;
+  margin-bottom: 20px; animation: spin 0.8s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.loading-view p { font-size: 0.95rem; font-weight: 700; color: var(--text-muted); }
+
+/* Copyright footer di app */
+.app-copyright {
+  text-align: center;
+  padding: 12px 20px calc(12px + var(--safe-bottom));
+  font-size: 0.68rem;
+  color: var(--text-subtle);
+  font-weight: 700;
+  background: transparent;
+}
+.app-copyright a {
+  color: var(--blue);
+  text-decoration: none;
+  font-weight: 800;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="toast-container" id="toast-container"></div>
+<canvas id="confetti-canvas" class="hidden"></canvas>
+
+<div class="app">
+  <button class="sound-toggle" id="soundToggle" onclick="toggleSound()" title="Suara">🔊</button>
+
+  <div class="content" id="content-area">
+
+    <!-- LOADING -->
+    <div id="loading-view" class="loading-view">
+      <div class="spinner"></div>
+      <p id="loading-text">Mengambil soal dari server...</p>
+    </div>
+
+    <!-- SPLASH -->
+    <div id="splash-view" class="splash-view hidden">
+      <div class="splash-logo">🏆</div>
+      <div class="splash-title">Latihan TKA</div>
+      <div class="splash-sub">Tes Kemampuan Akademik</div>
+      <div class="splash-loader">
+        <div class="splash-dot"></div>
+        <div class="splash-dot"></div>
+        <div class="splash-dot"></div>
+      </div>
+
+      <!-- Logo sayaguru.id -->
+      <div class="splash-partner">
+        <img src="https://i.imgur.com/nUWaPDi.png" alt="Sayaguru.id" onerror="this.style.display='none'">
+        <div class="splash-partner-text">Didukung oleh Sayaguru.id</div>
+      </div>
+
+      <!-- Copyright -->
+      <div class="splash-copyright">© 2026 Sayaguru.id — All Rights Reserved</div>
+    </div>
+
+    <!-- ONBOARDING -->
+    <div id="onboarding-view" class="onboarding-view hidden">
+      <div class="status-bar">
+        <span id="clock1">9:40 PM</span>
+      </div>
+      <div class="onboarding-header">
+        <div class="brand"><span id="onb-title">Latihan TKA</span><span class="brand-emoji">📚</span></div>
+        <button class="skip-btn" onclick="skipOnboarding()">Lewati</button>
+      </div>
+      <div class="onboarding-hero">
+        <div class="sparkle s1">✨</div><div class="sparkle s2">⭐</div>
+        <div class="sparkle s3">✨</div><div class="sparkle s4">💫</div>
+        <div class="speech-bubble">
+          <div class="speech-lightbulb">💡</div>
+          <div class="speech-title">Siap<br>TKA!</div>
+          <div class="speech-sub">Latihan soal TKA,<br>siap hadapi Tes Kemampuan Akademik.</div>
+        </div>
+        <div class="hero-trophy">🎓</div>
+      </div>
+      <div class="onboarding-bottom">
+        <div class="onb-title">Latihan Soal TKA<br>Setiap Hari</div>
+        <div class="onb-desc">Tingkatkan kemampuan akademikmu, kuasai materi TKA, raih hasil terbaik dalam Tes Kemampuan Akademik.</div>
+        <div class="onb-dots">
+          <div class="onb-dot active"></div>
+          <div class="onb-dot"></div>
+          <div class="onb-dot"></div>
+        </div>
+        <div class="onb-actions">
+          <button class="onb-back" onclick="onbBack()">‹</button>
+          <button class="onb-cta" onclick="onbNext()">
+            <span id="onb-cta-text">Mulai Latihan</span>
+            <span class="onb-cta-arrow">›››</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- HOME -->
+    <div id="home-view" class="home-view hidden">
+      <div class="status-bar">
+        <span id="clock2">9:40 PM</span>
+      </div>
+      <div class="home-header">
+        <div class="user-info">
+          <div class="user-avatar" id="home-avatar">🧑‍🎓</div>
+          <div class="user-text">
+            <div class="user-name" id="home-username">Tamu</div>
+            <span class="user-role" id="home-role">Siswa</span>
+          </div>
+        </div>
+        <div class="user-coins">
+          <div class="coin-icon">💎</div>
+          <span id="home-coins">0</span>
+        </div>
+      </div>
+      <div class="home-hero">
+        <div class="home-hero-title" id="home-app-title">Ayo Siapkan<br><span class="highlight">TKA Kamu</span></div>
+        <div class="home-hero-desc">Latihan soal TKA, kuasai materi, raih nilai terbaik.</div>
+        <div class="home-hero-trophy">🎓</div>
+      </div>
+      <div class="section-head">
+        <h2>Mulai Latihan</h2>
+        <button class="see-all" onclick="openLevels()">Lihat Semua</button>
+      </div>
+      <div class="game-card" onclick="openLevels()">
+        <div class="game-tag">TKA</div>
+        <div class="game-title" id="game-card-title">Latihan Soal<br><span class="highlight">TKA</span></div>
+        <div class="game-desc">Kuasai materi TKA lewat latihan soal terstruktur. Siapkan dirimu untuk meraih hasil terbaik di Tes Kemampuan Akademik.</div>
+        <button class="game-heart" id="game-heart" onclick="event.stopPropagation(); toggleHeart()">🤍</button>
+        <button class="game-play-btn" onclick="event.stopPropagation(); openLevels()">▶</button>
+        <div class="game-3d">📖</div>
+      </div>
+
+      <div class="app-copyright">© 2026 <a href="https://sayaguru.id" target="_blank">Sayaguru.id</a> — All Rights Reserved</div>
+    </div>
+
+    <!-- LEADERBOARD -->
+    <div id="leaderboard-view" class="leaderboard-view hidden">
+      <div class="status-bar">
+        <span id="clock3">9:40 PM</span>
+      </div>
+      <div class="lb-header-pill">
+        <div class="lb-month-badge" id="lb-month">November</div>
+        <div class="lb-title-bar">Peringkat</div>
+      </div>
+      <div class="podium" id="podium"></div>
+      <div class="lb-list-wrap">
+        <div class="lb-list" id="leaderboard"></div>
+      </div>
+      <div class="app-copyright">© 2026 <a href="https://sayaguru.id" target="_blank">Sayaguru.id</a> — All Rights Reserved</div>
+    </div>
+
+  </div>
+
+  <!-- BOTTOM NAV (3 tab) -->
+  <div class="bottom-nav" id="bottom-nav">
+    <button class="nav-item active" data-tab="home" onclick="switchMainTab('home')">
+      <span class="nav-icon">🏠</span><span class="nav-label">Beranda</span>
+    </button>
+    <button class="nav-item" data-tab="play" onclick="switchMainTab('play')">
+      <span class="nav-icon">📚</span><span class="nav-label">Latihan</span>
+    </button>
+    <button class="nav-item" data-tab="scores" onclick="switchMainTab('scores')">
+      <span class="nav-icon">🏆</span><span class="nav-label">Peringkat</span>
+    </button>
+  </div>
+
+  <!-- FORM -->
+  <div id="form-view" class="sub-view hidden">
+    <div class="sub-view-header">
+      <button class="sub-back" onclick="closeSubView('form-view')">←</button>
+      <div class="sub-title">Data Siswa</div>
+    </div>
+    <div class="sub-body">
+      <div style="text-align:center;margin:20px 0 24px;">
+        <div style="font-size:3.5rem;margin-bottom:10px;">🧑‍🎓</div>
+        <h2 style="font-size:1.4rem;font-weight:900;color:var(--navy);margin-bottom:6px;">Lengkapi Data Diri</h2>
+        <p style="font-size:0.85rem;color:var(--text-muted);font-weight:700;">Isi nama dan kelas untuk memulai latihan soal TKA</p>
+      </div>
+      <form id="student-form" novalidate>
+        <div class="form-group">
+          <label for="name">Nama Lengkap <span style="color:var(--red);">*</span></label>
+          <input type="text" id="name" required placeholder="Contoh: Budi Santoso" autocomplete="name" maxlength="60">
+          <div class="form-hint" id="name-hint">Nama wajib diisi minimal 2 karakter</div>
+        </div>
+        <div class="form-group">
+          <label for="studentClass">Kelas <span style="color:var(--red);">*</span></label>
+          <input type="text" id="studentClass" required placeholder="Contoh: 12 APL 2" autocomplete="off" maxlength="30">
+          <div class="form-hint" id="class-hint">Kelas wajib diisi</div>
+        </div>
+        <button type="submit" class="btn-primary blue" style="margin-top:8px;">Simpan & Mulai Latihan →</button>
+        <p style="font-size:0.72rem;color:var(--text-muted);text-align:center;margin-top:12px;font-weight:600;">
+          🔒 Data kamu akan tersimpan otomatis di perangkat ini
+        </p>
+      </form>
+    </div>
+  </div>
+
+  <!-- LEVELS -->
+  <div id="levels-view" class="sub-view hidden">
+    <div class="sub-view-header">
+      <button class="sub-back" onclick="closeSubView('levels-view')">←</button>
+      <div class="sub-title" id="levels-title-bar">Pilih Materi</div>
+    </div>
+    <div class="sub-body">
+      <div id="levels-grid" style="display:flex;flex-direction:column;gap:10px;"></div>
+    </div>
+  </div>
+
+  <!-- DIFFICULTY -->
+  <div id="difficulty-view" class="sub-view hidden">
+    <div class="sub-view-header">
+      <button class="sub-back" onclick="closeSubView('difficulty-view')">←</button>
+      <div class="sub-title" id="diff-sub-title">Pilih Tingkat Kesulitan</div>
+    </div>
+    <div class="sub-body">
+      <div class="diff-hero">
+        <div class="diff-hero-illus" id="diff-illus">📖</div>
+        <h2 id="diff-title">Level 1</h2>
+        <p id="diff-desc">Pilih tingkat kesulitan untuk memulai latihan</p>
+      </div>
+      <div class="diff-list" id="difficulty-list"></div>
+    </div>
+  </div>
+
+  <!-- QUIZ -->
+  <div id="quiz-view" class="sub-view hidden">
+    <div class="quiz-topbar">
+      <button class="sub-back" onclick="confirmExit()">✕</button>
+      <div class="quiz-timer-pill" id="quiz-timer">⏱ <span id="timer-text">60</span>d</div>
+    </div>
+    <div class="quiz-progress-track">
+      <div class="quiz-progress-fill" id="progress-fill" style="width:0%"></div>
+    </div>
+    <div class="quiz-body">
+      <div class="quiz-illus" id="quiz-illus">📚</div>
+      <div class="quiz-counter" id="q-counter">1 / 10</div>
+      <div class="quiz-q-text" id="q-text"></div>
+      <div class="answers" id="q-options"></div>
+    </div>
+    <div class="quiz-footer">
+      <button class="btn-primary blue" id="next-btn" onclick="handleNext()" style="display:none;">Lanjut →</button>
+    </div>
+  </div>
+
+  <!-- RESULT -->
+  <div id="result-view" class="sub-view hidden">
+    <div class="result-hero">
+      <div class="result-trophy" id="result-trophy">🎓</div>
+    </div>
+    <div class="result-card">
+      <h2 id="result-title">Hasil Latihan</h2>
+      <p class="result-desc" id="result-desc">Performa latihanmu menetapkan standar baru yang luar biasa.</p>
+      <div class="result-coins">
+        <span class="coin-icon">🪙</span>
+        <span id="result-coins-value">0 koin</span>
+      </div>
+      <div class="result-stats-row">
+        <div class="result-stat">
+          <div class="val" id="stat-correct" style="color:var(--green)">0</div>
+          <div class="lbl">Benar</div>
+        </div>
+        <div class="result-stat">
+          <div class="val" id="stat-wrong" style="color:var(--red)">0</div>
+          <div class="lbl">Salah</div>
+        </div>
+        <div class="result-stat">
+          <div class="val" id="stat-total" style="color:var(--blue)">0</div>
+          <div class="lbl">Total</div>
+        </div>
+      </div>
+      <div class="result-score-display">
+        <div class="score-val" id="final-score">0</div>
+        <div class="score-lbl">Skor Latihan</div>
+      </div>
+      <div class="review-section">
+        <h3>Ulasan Jawaban</h3>
+        <div class="review-list" id="review-list"></div>
+      </div>
+      <button class="btn-primary blue" onclick="backToHomeFromResult()">Selesai</button>
+      <div class="app-copyright" style="margin-top:16px;padding:0;">© 2026 <a href="https://sayaguru.id" target="_blank">Sayaguru.id</a></div>
+    </div>
+  </div>
+
+</div>
+
+<!-- MODAL -->
+<div id="confirm-modal" class="modal hidden">
+  <div class="modal-content">
+    <div class="modal-icon" id="modal-icon">🤔</div>
+    <h2 id="modal-title">Selesaikan Latihan?</h2>
+    <p id="modal-desc"></p>
+    <div class="modal-actions">
+      <button class="btn-primary outline" onclick="closeModal()">Batal</button>
+      <button class="btn-primary blue" onclick="modalConfirm()">Ya</button>
+    </div>
+  </div>
+</div>
+
+<!-- TAB WARNING -->
+<div id="tab-warning" class="tab-warning hidden">
+  <div class="tab-warning-icon">⚠️</div>
+  <h2>Jangan Pindah Tab!</h2>
+  <p>Harap tetap fokus pada halaman latihan. Peringatan akan hilang saat kamu kembali.</p>
+</div>
+
+<script>
+/* =========================================================
+   KONFIGURASI — URL GAS Anda
+   ========================================================= */
+const API_URL = 'https://script.google.com/macros/s/AKfycbyfmIc3eH0qVV2q4ATh_66a0pP6AZu5SyiTH7vSpu9ljHJlKxo2-i1VF4Uco_2HUOuFbw/exec';
+
+const STORAGE_KEY = 'tka_user_data_v1';
+const COINS_KEY = 'tka_coins_v1';
+const SOUND_KEY = 'tka_sound_v1';
+
+/* =========================================================
+   STATE
+   ========================================================= */
+let allLevels = {};
+let appTitle = 'Latihan Soal TKA';
+let quizQuestions = [];
+let studentAnswers = [];
+let currentIndex = 0;
+let selectedLevel = '';
+let selectedDifficulty = '';
+let timerInterval = null;
+let timeLeft = 60;
+let answered = false;
+const TIME_PER_Q = 60;
+let studentName = '';
+let studentClass = '';
+let coinsEarned = 0;
+let userCoins = 0;
+let soundEnabled = true;
+let audioCtx = null;
+let onbStep = 0;
+let currentMainTab = 'home';
+let modalAction = '';
+
+const LEVEL_EMOJIS = ['📖', '📝', '🔢', '🧮', '🔬', '🌍', '📚', '✏️'];
+const AVATAR_EMOJIS = ['🧑‍🎓', '👨‍🎓', '👩‍🎓', '🧑‍🏫', '👨‍💻', '👩‍💻', '🦊', '🐼', '🐨', '🦁', '🐯', '🐸'];
+
+/* =========================================================
+   LOCALSTORAGE
+   ========================================================= */
+function saveUserData() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      name: studentName, studentClass: studentClass,
+      savedAt: new Date().toISOString()
+    }));
+  } catch (e) { console.warn('Gagal simpan data user:', e); }
+}
+function loadUserData() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return false;
+    const data = JSON.parse(raw);
+    if (data && data.name && data.studentClass) {
+      studentName = data.name;
+      studentClass = data.studentClass;
+      return true;
+    }
+  } catch (e) { console.warn('Gagal muat data user:', e); }
+  return false;
+}
+function saveCoins() {
+  try { localStorage.setItem(COINS_KEY, String(userCoins)); } catch (e) {}
+}
+function loadCoins() {
+  try {
+    const raw = localStorage.getItem(COINS_KEY);
+    if (raw) userCoins = parseInt(raw) || 0;
+  } catch (e) {}
+}
+function saveSoundPref() {
+  try { localStorage.setItem(SOUND_KEY, soundEnabled ? '1' : '0'); } catch (e) {}
+}
+function loadSoundPref() {
+  try {
+    const raw = localStorage.getItem(SOUND_KEY);
+    if (raw !== null) soundEnabled = raw === '1';
+  } catch (e) {}
+}
+
+/* =========================================================
+   SOUND
+   ========================================================= */
+function initAudio() {
+  if (!audioCtx) {
+    try { audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    catch (e) { console.warn('Audio tidak didukung'); }
+  }
+  if (audioCtx && audioCtx.state === 'suspended') audioCtx.resume();
+}
+function playTone(freq, duration = 0.15, type = 'sine', volume = 0.15) {
+  if (!soundEnabled) return;
+  initAudio();
+  if (!audioCtx) return;
+  const osc = audioCtx.createOscillator();
+  const gain = audioCtx.createGain();
+  osc.type = type;
+  osc.frequency.value = freq;
+  gain.gain.setValueAtTime(0, audioCtx.currentTime);
+  gain.gain.linearRampToValueAtTime(volume, audioCtx.currentTime + 0.01);
+  gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+  osc.connect(gain);
+  gain.connect(audioCtx.destination);
+  osc.start();
+  osc.stop(audioCtx.currentTime + duration);
+}
+function soundClick() { playTone(800, 0.08, 'sine', 0.08); }
+function soundCorrect() {
+  playTone(659, 0.12, 'sine', 0.15);
+  setTimeout(() => playTone(880, 0.18, 'sine', 0.15), 100);
+  setTimeout(() => playTone(1175, 0.25, 'sine', 0.12), 220);
+}
+function soundWrong() {
+  playTone(220, 0.15, 'sawtooth', 0.12);
+  setTimeout(() => playTone(165, 0.25, 'sawtooth', 0.1), 100);
+}
+function soundWin() {
+  [523, 659, 784, 1047].forEach((f, i) => {
+    setTimeout(() => playTone(f, 0.25, 'sine', 0.15), i * 120);
+  });
+}
+function soundStart() {
+  playTone(440, 0.1, 'sine', 0.12);
+  setTimeout(() => playTone(660, 0.15, 'sine', 0.12), 100);
+}
+function soundTick() { playTone(1200, 0.04, 'square', 0.05); }
+
+function toggleSound() {
+  soundEnabled = !soundEnabled;
+  const btn = $('soundToggle');
+  btn.textContent = soundEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !soundEnabled);
+  saveSoundPref();
+  if (soundEnabled) {
+    initAudio(); soundClick();
+    showToast('Suara diaktifkan 🔊', 'success');
+  } else {
+    showToast('Suara dinonaktifkan 🔇', 'warning');
+  }
+}
+
+function haptic(pattern = 10) {
+  if ('vibrate' in navigator) { try { navigator.vibrate(pattern); } catch (e) {} }
+}
+
+/* =========================================================
+   UTILS
+   ========================================================= */
+function $(id) { return document.getElementById(id); }
+function showToast(msg, type = '') {
+  const c = $('toast-container');
+  const t = document.createElement('div');
+  t.className = 'toast ' + type;
+  t.textContent = msg;
+  c.appendChild(t);
+  setTimeout(() => {
+    t.style.transition = 'opacity 0.3s, transform 0.3s';
+    t.style.opacity = '0';
+    t.style.transform = 'translateY(-10px) scale(0.9)';
+    setTimeout(() => t.remove(), 300);
+  }, 2200);
+}
+function shuffle(arr) {
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+}
+function randomAvatar(str) {
+  if (!str) return AVATAR_EMOJIS[0];
+  let hash = 0;
+  for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+  return AVATAR_EMOJIS[Math.abs(hash) % AVATAR_EMOJIS.length];
+}
+function escapeHtml(str) {
+  return String(str || '').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+}
+function launchConfetti() {
+  const canvas = $('confetti-canvas');
+  canvas.classList.remove('hidden');
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const particles = [];
+  const colors = ['#FFD93D', '#FF8C42', '#4A90E2', '#FF69B4', '#10B981', '#A78BFA'];
+  for (let i = 0; i < 140; i++) {
+    particles.push({
+      x: Math.random() * canvas.width,
+      y: Math.random() * canvas.height - canvas.height,
+      w: Math.random() * 8 + 4, h: Math.random() * 6 + 3,
+      color: colors[Math.floor(Math.random() * colors.length)],
+      vy: Math.random() * 3 + 2, vx: Math.random() * 2 - 1,
+      rot: Math.random() * Math.PI, vr: Math.random() * 0.1 - 0.05
+    });
+  }
+  let frames = 0;
+  function animate() {
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.y += p.vy; p.x += p.vx; p.rot += p.vr;
+      ctx.save();
+      ctx.translate(p.x, p.y); ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2, -p.h/2, p.w, p.h);
+      ctx.restore();
+    });
+    frames++;
+    if (frames < 200) requestAnimationFrame(animate);
+    else { ctx.clearRect(0, 0, canvas.width, canvas.height); canvas.classList.add('hidden'); }
+  }
+  animate();
+}
+function updateClocks() {
+  const now = new Date();
+  const h = now.getHours();
+  const m = String(now.getMinutes()).padStart(2, '0');
+  const ampm = h >= 12 ? 'PM' : 'AM';
+  const h12 = h % 12 || 12;
+  const str = `${h12}:${m} ${ampm}`;
+  ['clock1','clock2','clock3'].forEach(id => { const el = $(id); if (el) el.textContent = str; });
+}
+function updateMonth() {
+  const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+  const now = new Date();
+  const el = $('lb-month');
+  if (el) el.textContent = months[now.getMonth()];
+}
+
+/* =========================================================
+   INIT
+   ========================================================= */
+document.addEventListener('DOMContentLoaded', () => {
+  updateClocks();
+  setInterval(updateClocks, 30000);
+  updateMonth();
+
+  loadSoundPref();
+  loadCoins();
+  const hasUserData = loadUserData();
+
+  const btn = $('soundToggle');
+  btn.textContent = soundEnabled ? '🔊' : '🔇';
+  btn.classList.toggle('muted', !soundEnabled);
+
+  loadQuizData(hasUserData);
+
+  setTimeout(() => {
+    const lv = $('loading-view');
+    if (lv && !lv.classList.contains('hidden')) {
+      lv.classList.add('hidden');
+      showSplash(hasUserData);
+    }
+  }, 4000);
+
+  document.addEventListener('click', () => initAudio(), { once: true });
+  document.addEventListener('touchstart', () => initAudio(), { once: true });
+});
+
+async function loadQuizData(hasUserData) {
+  if (!API_URL || API_URL.includes('YOUR_GAS_URL')) {
+    $('loading-text').textContent = '⚠️ URL API belum diisi';
+    return;
+  }
+  try {
+    const res = await fetch(`${API_URL}?action=quiz`);
+    const data = await res.json();
+    if (data.error) throw new Error(data.error);
+
+    appTitle = data.title || 'Latihan Soal TKA';
+    document.title = appTitle + ' — Tes Kemampuan Akademik';
+    allLevels = data.levels || {};
+
+    $('onb-title').textContent = 'Latihan TKA';
+    $('home-app-title').innerHTML = 'Ayo Siapkan<br><span class="highlight">TKA Kamu</span>';
+    $('levels-title-bar').textContent = 'Pilih Materi TKA';
+    $('game-card-title').innerHTML = escapeHtml(appTitle) + '<br><span class="highlight">TKA</span>';
+
+    renderLevels();
+
+    if (hasUserData) {
+      $('home-username').textContent = studentName;
+      $('home-avatar').textContent = randomAvatar(studentName);
+      $('home-role').textContent = studentClass;
+    }
+    $('home-coins').textContent = userCoins;
+
+    $('loading-view').classList.add('hidden');
+    showSplash(hasUserData);
+  } catch (err) {
+    $('loading-text').innerHTML = '❌ ' + err.message;
+    showToast('Gagal memuat soal: ' + err.message, 'danger');
+  }
+}
+
+function showSplash(hasUserData) {
+  $('splash-view').classList.remove('hidden');
+  setTimeout(() => {
+    $('splash-view').classList.add('fade-out');
+    setTimeout(() => {
+      $('splash-view').classList.add('hidden');
+      if (hasUserData) {
+        skipOnboarding(true);
+      } else {
+        showView('onboarding-view');
+      }
+    }, 600);
+  }, 2200); // Sedikit lebih lama supaya logo sayaguru.id terlihat
+}
+
+window.addEventListener('blur', () => {
+  const qv = $('quiz-view');
+  if (qv && !qv.classList.contains('hidden')) $('tab-warning').classList.remove('hidden');
+});
+window.addEventListener('focus', () => {
+  $('tab-warning').classList.add('hidden');
+});
+
+function showView(id) {
+  ['onboarding-view','home-view','leaderboard-view'].forEach(v => {
+    const el = $(v); if (el) el.classList.add('hidden');
+  });
+  const target = $(id);
+  if (target) target.classList.remove('hidden');
+  const content = $('content-area');
+  if (content) content.scrollTop = 0;
+
+  const nav = $('bottom-nav');
+  if (nav) nav.style.display = (id === 'onboarding-view') ? 'none' : 'flex';
+
+  if (id === 'home-view') setActiveNav('home');
+  else if (id === 'leaderboard-view') setActiveNav('scores');
+}
+function setActiveNav(tab) {
+  document.querySelectorAll('.nav-item').forEach(el => el.classList.toggle('active', el.dataset.tab === tab));
+  currentMainTab = tab;
+}
+function switchMainTab(tab) {
+  soundClick(); haptic(10);
+  if (tab === 'home') showView('home-view');
+  else if (tab === 'scores') { showView('leaderboard-view'); loadLeaderboard(); }
+  else if (tab === 'play') openLevels();
+}
+
+/* =========================================================
+   ONBOARDING
+   ========================================================= */
+function onbNext() {
+  soundClick(); haptic(10);
+  onbStep++;
+  if (onbStep >= 3) { skipOnboarding(); return; }
+  updateOnboardingStep();
+}
+function onbBack() {
+  soundClick(); haptic(10);
+  onbStep = Math.max(0, onbStep - 1);
+  updateOnboardingStep();
+}
+function updateOnboardingStep() {
+  const dots = document.querySelectorAll('.onb-dot');
+  dots.forEach((d, i) => d.classList.toggle('active', i === onbStep));
+  const cta = $('onb-cta-text');
+  if (onbStep === 0) cta.textContent = 'Mulai Latihan';
+  else if (onbStep === 1) cta.textContent = 'Lanjutkan';
+  else if (onbStep === 2) cta.textContent = 'Ayo Mulai';
+}
+
+function skipOnboarding(silent = false) {
+  if (!silent) soundStart();
+  showView('home-view');
+  $('home-username').textContent = studentName || 'Tamu';
+  $('home-avatar').textContent = randomAvatar(studentName || 'Tamu');
+  $('home-role').textContent = studentClass || 'Siswa';
+  $('home-coins').textContent = userCoins;
+
+  if (!studentName || !studentClass) {
+    setTimeout(() => showSubView('form-view'), 400);
+  }
+}
+
+/* =========================================================
+   FORM
+   ========================================================= */
+$('student-form').addEventListener('submit', e => {
+  e.preventDefault();
+  const nameInput = $('name');
+  const classInput = $('studentClass');
+  const nameVal = nameInput.value.trim();
+  const classVal = classInput.value.trim();
+
+  let valid = true;
+  if (!nameVal || nameVal.length < 2) {
+    nameInput.classList.add('invalid');
+    $('name-hint').classList.add('show');
+    valid = false;
+  } else {
+    nameInput.classList.remove('invalid');
+    $('name-hint').classList.remove('show');
+  }
+  if (!classVal) {
+    classInput.classList.add('invalid');
+    $('class-hint').classList.add('show');
+    valid = false;
+  } else {
+    classInput.classList.remove('invalid');
+    $('class-hint').classList.remove('show');
+  }
+  if (!valid) {
+    soundWrong();
+    haptic([30, 20, 30]);
+    showToast('Lengkapi nama dan kelas dulu ya! 📝', 'danger');
+    return;
+  }
+
+  soundClick(); haptic(10);
+  studentName = nameVal;
+  studentClass = classVal;
+  saveUserData();
+
+  $('home-username').textContent = studentName;
+  $('home-avatar').textContent = randomAvatar(studentName);
+  $('home-role').textContent = studentClass;
+  $('home-coins').textContent = userCoins;
+
+  closeSubView('form-view');
+  showView('home-view');
+  showToast(`Selamat datang, ${studentName}! Siap latihan TKA? 📚`, 'success');
+});
+
+document.addEventListener('DOMContentLoaded', () => {
+  const nameInput = $('name');
+  const classInput = $('studentClass');
+  if (nameInput) nameInput.addEventListener('input', () => {
+    if (nameInput.value.trim().length >= 2) {
+      nameInput.classList.remove('invalid');
+      $('name-hint').classList.remove('show');
+    }
+  });
+  if (classInput) classInput.addEventListener('input', () => {
+    if (classInput.value.trim()) {
+      classInput.classList.remove('invalid');
+      $('class-hint').classList.remove('show');
+    }
+  });
+});
+
+/* =========================================================
+   SUB VIEWS
+   ========================================================= */
+function openLevels() {
+  soundClick(); haptic(10);
+  if (!studentName || !studentClass) {
+    showToast('Isi nama dan kelas dulu ya! 📝', 'warning');
+    showSubView('form-view');
+    return;
+  }
+  showSubView('levels-view');
+}
+function showSubView(id) {
+  ['form-view','levels-view','difficulty-view','quiz-view','result-view'].forEach(v => {
+    const el = $(v); if (el) el.classList.add('hidden');
+  });
+  const target = $(id);
+  if (target) target.classList.remove('hidden');
+  const nav = $('bottom-nav');
+  if (nav) nav.style.display = 'none';
+
+  if (id === 'form-view') {
+    const nameInput = $('name');
+    const classInput = $('studentClass');
+    if (nameInput && studentName) nameInput.value = studentName;
+    if (classInput && studentClass) classInput.value = studentClass;
+  }
+}
+function closeSubView(id) {
+  soundClick(); haptic(10);
+  $(id).classList.add('hidden');
+  const nav = $('bottom-nav');
+  if (nav) nav.style.display = 'flex';
+  if (currentMainTab === 'home') showView('home-view');
+  else if (currentMainTab === 'scores') showView('leaderboard-view');
+  else showView('home-view');
+}
+function backToHomeFromResult() {
+  soundClick();
+  $('result-view').classList.add('hidden');
+  const nav = $('bottom-nav');
+  if (nav) nav.style.display = 'flex';
+  showView('home-view');
+}
+
+/* =========================================================
+   LEVELS
+   ========================================================= */
+function renderLevels() {
+  const grid = $('levels-grid');
+  const colorClasses = [
+    'linear-gradient(135deg, #A8D8F0 0%, #4A90E2 100%)',
+    'linear-gradient(135deg, #FFD93D 0%, #FF8C42 100%)',
+    'linear-gradient(135deg, #FFB6D9 0%, #FF69B4 100%)',
+    'linear-gradient(135deg, #A78BFA 0%, #8B5CF6 100%)',
+    'linear-gradient(135deg, #6EE7B7 0%, #10B981 100%)',
+    'linear-gradient(135deg, #FCA5A5 0%, #EF4444 100%)'
+  ];
+  const levelKeys = Object.keys(allLevels).sort();
+  let html = '';
+  levelKeys.forEach((level, i) => {
+    const ld = allLevels[level];
+    const total = (ld.Mudah?.length || 0) + (ld.Sedang?.length || 0) + (ld.Susah?.length || 0);
+    if (total === 0) return;
+    const bg = colorClasses[i % colorClasses.length];
+    const emoji = LEVEL_EMOJIS[i % LEVEL_EMOJIS.length];
+    html += `
+      <button onclick="selectLevel('${level.replace(/'/g,"\\'")}')"
+        style="position:relative;background:${bg};color:white;border:none;border-radius:var(--radius-lg);padding:18px;min-height:110px;display:flex;flex-direction:column;justify-content:space-between;text-align:left;font-family:inherit;cursor:pointer;overflow:hidden;box-shadow:var(--shadow);transition:transform 0.15s;"
+        onmousedown="this.style.transform='scale(0.97)'" onmouseup="this.style.transform='scale(1)'">
+        <div style="display:inline-flex;align-items:center;gap:6px;padding:3px 10px;border-radius:999px;background:rgba(255,255,255,0.3);backdrop-filter:blur(6px);font-size:0.65rem;font-weight:900;text-transform:uppercase;letter-spacing:0.05em;align-self:flex-start;">${escapeHtml(level)}</div>
+        <div style="font-size:1.1rem;font-weight:900;letter-spacing:-0.01em;line-height:1.1;position:relative;z-index:2;margin-top:8px;">${escapeHtml(level)}</div>
+        <div style="font-size:0.72rem;font-weight:700;opacity:0.9;position:relative;z-index:2;">${total} soal</div>
+        <div style="position:absolute;right:-8px;bottom:-8px;font-size:4rem;filter:drop-shadow(0 6px 12px rgba(0,0,0,0.2));animation:floatY 3s ease-in-out infinite;z-index:1;">${emoji}</div>
+      </button>
+    `;
+  });
+  grid.innerHTML = html || '<div style="text-align:center;color:var(--text-muted);padding:40px;font-weight:700;">Belum ada materi tersedia</div>';
+}
+
+/* =========================================================
+   DIFFICULTY
+   ========================================================= */
+function selectLevel(level) {
+  soundClick(); haptic(10);
+  selectedLevel = level;
+  const ld = allLevels[level];
+  $('diff-title').textContent = level;
+  $('diff-sub-title').textContent = level;
+  $('diff-illus').textContent = LEVEL_EMOJIS[Object.keys(allLevels).sort().indexOf(level) % LEVEL_EMOJIS.length];
+
+  const diffs = [
+    { key: 'Mudah', label: 'Mudah', icon: '🚀', cls: 'mudah', count: ld.Mudah?.length || 0 },
+    { key: 'Sedang', label: 'Sedang', icon: '🎯', cls: 'sedang', count: ld.Sedang?.length || 0 },
+    { key: 'Susah', label: 'Susah', icon: '🧠', cls: 'susah', count: ld.Susah?.length || 0 }
+  ];
+
+  let html = '';
+  diffs.forEach(d => {
+    const disabled = d.count === 0;
+    html += `
+      <button class="diff-btn ${d.cls}" onclick="startQuiz('${d.key}')" ${disabled ? 'disabled' : ''}>
+        <div class="diff-icon">${d.icon}</div>
+        <div class="diff-info">
+          <div class="diff-title">${d.label}</div>
+          <div class="diff-count">${d.count} soal tersedia</div>
+        </div>
+        <span class="diff-arrow">›</span>
+      </button>
+    `;
+  });
+  $('difficulty-list').innerHTML = html;
+  showSubView('difficulty-view');
+}
+
+/* =========================================================
+   QUIZ
+   ========================================================= */
+function startQuiz(difficulty) {
+  if (!studentName || !studentClass) {
+    showToast('Isi nama dan kelas dulu ya! 📝', 'warning');
+    showSubView('form-view');
+    return;
+  }
+
+  soundStart(); haptic(20);
+  selectedDifficulty = difficulty;
+  quizQuestions = [...(allLevels[selectedLevel][difficulty] || [])];
+  shuffle(quizQuestions);
+  studentAnswers = new Array(quizQuestions.length).fill(null);
+  currentIndex = 0;
+  answered = false;
+  coinsEarned = 0;
+
+  if (quizQuestions.length === 0) {
+    showToast('Soal tidak tersedia', 'danger');
+    return;
+  }
+  renderQuestion();
+  showSubView('quiz-view');
+}
+
+function startTimer() {
+  clearInterval(timerInterval);
+  timeLeft = TIME_PER_Q;
+  updateTimerUI();
+  timerInterval = setInterval(() => {
+    timeLeft--;
+    updateTimerUI();
+    if (timeLeft <= 5 && timeLeft > 0) soundTick();
+    if (timeLeft <= 0) { clearInterval(timerInterval); autoReveal(); }
+  }, 1000);
+}
+function updateTimerUI() {
+  const el = $('quiz-timer');
+  $('timer-text').textContent = timeLeft;
+  el.classList.remove('warning', 'danger');
+  if (timeLeft <= 10) el.classList.add('danger');
+  else if (timeLeft <= 20) el.classList.add('warning');
+}
+
+function renderQuestion() {
+  const q = quizQuestions[currentIndex];
+  const keys = ['A','B','C','D'];
+  answered = false;
+
+  $('q-counter').textContent = `${currentIndex+1} / ${quizQuestions.length}`;
+  $('q-text').textContent = q.question;
+  $('quiz-illus').textContent = LEVEL_EMOJIS[0];
+
+  const progress = (currentIndex / quizQuestions.length) * 100;
+  $('progress-fill').style.width = progress + '%';
+
+  let html = '';
+  keys.forEach(k => {
+    if (!q.options[k]) return;
+    html += `
+      <button class="answer-btn" data-key="${k}" onclick="selectAnswer('${k}')">
+        <span>${escapeHtml(q.options[k])}</span>
+        <span class="check-icon"></span>
+      </button>
+    `;
+  });
+  $('q-options').innerHTML = html;
+  $('next-btn').style.display = 'none';
+
+  startTimer();
+}
+
+function selectAnswer(key) {
+  if (answered) return;
+  answered = true;
+  clearInterval(timerInterval);
+
+  studentAnswers[currentIndex] = key;
+
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(btn => {
+    btn.disabled = true;
+    if (btn.dataset.key === key) {
+      btn.style.borderColor = 'var(--blue)';
+      btn.style.background = 'var(--blue-light)';
+    }
+  });
+
+  soundClick();
+  haptic(10);
+  const progress = ((currentIndex + 1) / quizQuestions.length) * 100;
+  $('progress-fill').style.width = progress + '%';
+
+  const nextBtn = $('next-btn');
+  nextBtn.textContent = currentIndex < quizQuestions.length - 1 ? 'Lanjut →' : 'Lihat Hasil →';
+  nextBtn.style.display = 'block';
+}
+
+function autoReveal() {
+  if (answered) return;
+  answered = true;
+  studentAnswers[currentIndex] = null;
+  soundWrong();
+  haptic([50, 30, 50]);
+  showToast('Waktu habis! ⏰', 'danger');
+  const btns = document.querySelectorAll('.answer-btn');
+  btns.forEach(btn => btn.disabled = true);
+  const nextBtn = $('next-btn');
+  nextBtn.textContent = currentIndex < quizQuestions.length - 1 ? 'Lanjut →' : 'Lihat Hasil →';
+  nextBtn.style.display = 'block';
+}
+
+function handleNext() {
+  soundClick(); haptic(10);
+  if (currentIndex < quizQuestions.length - 1) {
+    currentIndex++;
+    renderQuestion();
+  } else {
+    confirmSubmit();
+  }
+}
+
+function confirmExit() {
+  soundClick();
+  modalAction = 'exit';
+  $('modal-icon').textContent = '🚪';
+  $('modal-title').textContent = 'Keluar dari Latihan?';
+  $('modal-desc').textContent = 'Progres latihan akan hilang jika kamu keluar sekarang.';
+  $('confirm-modal').classList.remove('hidden');
+}
+
+function confirmSubmit() {
+  soundClick();
+  const unanswered = studentAnswers.filter(a => a === null).length;
+  modalAction = 'submit';
+  $('modal-icon').textContent = '🤔';
+  $('modal-title').textContent = 'Selesaikan Latihan?';
+  $('modal-desc').textContent = unanswered > 0
+    ? `Ada ${unanswered} soal yang belum terjawab. Yakin lanjut?`
+    : 'Semua soal sudah terjawab. Siap melihat hasil?';
+  $('confirm-modal').classList.remove('hidden');
+}
+
+function closeModal() {
+  soundClick();
+  $('confirm-modal').classList.add('hidden');
+}
+
+function modalConfirm() {
+  const action = modalAction;
+  closeModal();
+  if (action === 'exit') {
+    clearInterval(timerInterval);
+    closeSubView('quiz-view');
+  } else if (action === 'submit') {
+    submitQuiz();
+  }
+}
+
+/* =========================================================
+   SUBMIT
+   ========================================================= */
+async function submitQuiz() {
+  clearInterval(timerInterval);
+
+  const payload = {
+    action: 'submit',
+    data: {
+      name: studentName,
+      studentClass: studentClass,
+      level: selectedLevel,
+      difficulty: selectedDifficulty,
+      answers: quizQuestions.map((q, i) => ({
+        question: q.question,
+        answer: studentAnswers[i]
+      }))
+    }
+  };
+
+  try {
+    const res = await fetch(API_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+      body: JSON.stringify(payload)
+    });
+    const result = await res.json();
+    if (result.error) throw new Error(result.error);
+    displayResult(result);
+  } catch (err) {
+    showToast('Gagal mengirim: ' + err.message, 'danger');
+    console.error('Submit error:', err);
+  }
+}
+
+/* =========================================================
+   RESULT
+   ========================================================= */
+function displayResult(r) {
+  $('final-score').textContent = r.finalScore;
+  $('stat-correct').textContent = r.score;
+  $('stat-wrong').textContent = r.total - r.score;
+  $('stat-total').textContent = r.total;
+
+  coinsEarned = r.score * 100;
+  userCoins += coinsEarned;
+  saveCoins();
+  $('result-coins-value').textContent = `${coinsEarned.toLocaleString('id-ID')} koin`;
+  $('home-coins').textContent = userCoins;
+
+  const trophy = $('result-trophy');
+  const title = $('result-title');
+  const desc = $('result-desc');
+  if (r.finalScore >= 90) {
+    trophy.textContent = '🏆';
+    title.textContent = 'Luar Biasa!';
+    desc.textContent = 'Kamu menguasai materi TKA dengan sangat baik. Pertahankan prestasimu!';
+    launchConfetti(); soundWin(); haptic([30, 50, 30, 50, 30]);
+  } else if (r.finalScore >= 75) {
+    trophy.textContent = '🥇';
+    title.textContent = 'Kerja Bagus!';
+    desc.textContent = 'Pemahamanmu tentang materi TKA sudah baik. Terus tingkatkan!';
+    launchConfetti(); soundWin(); haptic([20, 40, 20]);
+  } else if (r.finalScore >= 60) {
+    trophy.textContent = '🎯';
+    title.textContent = 'Cukup Baik';
+    desc.textContent = 'Kamu lulus latihan ini! Perbanyak latihan soal untuk hasil lebih baik.';
+    soundCorrect();
+  } else {
+    trophy.textContent = '💪';
+    title.textContent = 'Terus Semangat!';
+    desc.textContent = 'Jangan menyerah! Pelajari lagi materinya dan coba lagi untuk hasil lebih baik.';
+    soundWrong();
+  }
+
+  let html = '';
+  r.review.forEach((item, i) => {
+    const sa = item.studentAnswer !== 'Tidak Dijawab'
+      ? `${item.studentAnswer}. ${item.options[item.studentAnswer] || ''}`
+      : 'Tidak Dijawab';
+    const ca = `${item.correctAnswer}. ${item.options[item.correctAnswer] || ''}`;
+    const cls = item.isCorrect ? 'correct' : 'wrong';
+    const fb = item.isCorrect
+      ? `<p class="review-a green">✓ Jawabanmu: ${escapeHtml(sa)}</p>`
+      : `<p class="review-a red">✗ Jawabanmu: ${escapeHtml(sa)}</p><p class="review-a green">✓ Kunci: ${escapeHtml(ca)}</p>`;
+    html += `<div class="review-item ${cls}"><div class="review-q">${i+1}. ${escapeHtml(item.question)}</div>${fb}</div>`;
+  });
+  $('review-list').innerHTML = html;
+
+  showSubView('result-view');
+}
+
+/* =========================================================
+   LEADERBOARD
+   ========================================================= */
+async function loadLeaderboard() {
+  const container = $('leaderboard');
+  const podium = $('podium');
+  container.innerHTML = '<div style="text-align:center;padding:20px;color:var(--text-muted);font-weight:700;">Memuat...</div>';
+  podium.innerHTML = '';
+
+  try {
+    const res = await fetch(`${API_URL}?action=leaderboard`);
+    const data = await res.json();
+    renderLeaderboard(data);
+  } catch (err) {
+    container.innerHTML = `<div style="text-align:center;padding:40px;color:var(--text-muted);font-weight:700;">Gagal memuat: ${escapeHtml(err.message)}</div>`;
+  }
+}
+
+function renderLeaderboard(data) {
+  const container = $('leaderboard');
+  const podium = $('podium');
+
+  if (!Array.isArray(data) || data.length === 0) {
+    container.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted);font-weight:700;">Belum ada data peringkat</div>';
+    return;
+  }
+
+  const top3 = data.slice(0, 3);
+  const order = [];
+  if (top3[1]) order.push({ ...top3[1], rank: 2 });
+  if (top3[0]) order.push({ ...top3[0], rank: 1 });
+  if (top3[2]) order.push({ ...top3[2], rank: 3 });
+
+  let podiumHtml = '';
+  order.forEach(p => {
+    const cls = p.rank === 1 ? 'first' : p.rank === 2 ? 'second' : 'third';
+    const avatar = randomAvatar(p.name);
+    podiumHtml += `
+      <div class="podium-slot ${cls}">
+        <div class="podium-avatar-wrap">
+          <div class="podium-avatar">${avatar}</div>
+          <div class="podium-rank-badge">${p.rank}</div>
+        </div>
+        <div class="podium-name">${escapeHtml(p.name)}</div>
+        <div class="podium-coins"><span>💎</span> ${parseFloat(p.score).toFixed(0)}</div>
+        <div class="podium-bar">${p.rank}</div>
+      </div>
+    `;
+  });
+  podium.innerHTML = podiumHtml;
+
+  let html = '';
+  data.forEach((s, i) => {
+    const avatar = randomAvatar(s.name);
+    const score = parseFloat(s.score).toFixed(0);
+    const trend = i % 3 === 0 ? 'down' : 'up';
+    const arrow = trend === 'up' ? '▲' : '▼';
+    html += `
+      <div class="lb-row" style="animation-delay:${i*0.05}s">
+        <div class="lb-rank">#${i+1}</div>
+        <div class="lb-avatar">${avatar}</div>
+        <div class="lb-info">
+          <div class="lb-name">${escapeHtml(s.name)}</div>
+          <div class="lb-coins-pill"><span style="font-size:0.6rem;">💎</span> ${score} · ${escapeHtml(s.studentClass || '-')}</div>
+        </div>
+        <div class="lb-trend ${trend}">${arrow}</div>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+/* =========================================================
+   MISC
+   ========================================================= */
+function toggleHeart() {
+  soundClick(); haptic(10);
+  const btn = $('game-heart');
+  btn.classList.toggle('active');
+  btn.textContent = btn.classList.contains('active') ? '❤️' : '🤍';
+}
+</script>
+</body>
+</html>
