@@ -7,6 +7,7 @@
 <title>RoboClass Manager</title>
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/qrcode@1.5.3/build/qrcode.min.js"></script>
 <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <style>
   * { -webkit-tap-highlight-color: transparent; box-sizing: border-box; }
@@ -26,26 +27,20 @@
   .nav-active svg { transform: scale(1.1); }
   .nav-btn svg { transition: transform 0.2s; }
   .shadow-soft { box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.15); }
-  .safe-bottom { padding-bottom: env(safe-area-inset-bottom); }
   input[type="radio"] { accent-color: #7c3aed; }
   input, select, textarea { font-family: inherit; }
 
-  /* ============ POPUP NOTIFIKASI CUSTOM ============ */
   .popup-overlay {
     position: fixed; inset: 0; z-index: 300;
     background: rgba(15, 23, 42, 0.5);
-    backdrop-filter: blur(8px);
-    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
     display: flex; align-items: center; justify-content: center;
-    padding: 1.5rem;
-    animation: overlayIn 0.2s ease-out;
+    padding: 1.5rem; animation: overlayIn 0.2s ease-out;
   }
   @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
   .popup-box {
-    background: white;
-    border-radius: 1.75rem;
-    width: 100%; max-width: 22rem;
-    padding: 1.75rem;
+    background: white; border-radius: 1.75rem;
+    width: 100%; max-width: 22rem; padding: 1.75rem;
     text-align: center;
     box-shadow: 0 25px 50px -12px rgba(124, 58, 237, 0.35);
     animation: popupIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
@@ -55,11 +50,9 @@
     to { opacity: 1; transform: scale(1) translateY(0); }
   }
   .popup-icon {
-    width: 4rem; height: 4rem;
-    border-radius: 1.5rem;
+    width: 4rem; height: 4rem; border-radius: 1.5rem;
     display: inline-flex; align-items: center; justify-content: center;
-    margin-bottom: 1rem;
-    font-size: 2rem;
+    margin-bottom: 1rem; font-size: 2rem;
   }
   .popup-icon-success { background: linear-gradient(135deg, #10b981, #059669); box-shadow: 0 8px 20px -4px rgba(16, 185, 129, 0.4); }
   .popup-icon-error   { background: linear-gradient(135deg, #f43f5e, #e11d48); box-shadow: 0 8px 20px -4px rgba(244, 63, 94, 0.4); }
@@ -69,7 +62,6 @@
   @keyframes pulseLoad { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
   @keyframes spin { to { transform: rotate(360deg); } }
 
-  /* Toast notif kecil di atas */
   .toast {
     position: fixed; top: calc(env(safe-area-inset-top) + 1rem);
     left: 50%; transform: translateX(-50%);
@@ -81,27 +73,70 @@
     animation: toastIn 0.3s ease-out;
     max-width: calc(100% - 2rem);
   }
-  @keyframes toastIn {
-    from { opacity: 0; transform: translate(-50%, -20px); }
-    to   { opacity: 1; transform: translate(-50%, 0); }
-  }
+  @keyframes toastIn { from { opacity: 0; transform: translate(-50%, -20px); } to { opacity: 1; transform: translate(-50%, 0); } }
   .toast.fade-out { animation: toastOut 0.3s ease-in forwards; }
-  @keyframes toastOut {
-    to { opacity: 0; transform: translate(-50%, -20px); }
+  @keyframes toastOut { to { opacity: 0; transform: translate(-50%, -20px); } }
+
+  /* SERTIFIKAT */
+  .sertifikat-page {
+    width: 297mm; height: 210mm; background: white;
+    position: relative; overflow: hidden;
+    page-break-after: always; margin: 0 auto 20px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 8px;
+  }
+  .sertifikat-page:last-child { page-break-after: auto; }
+  .cert-border-outer { position: absolute; inset: 8mm; border: 4px solid #7c3aed; border-radius: 8mm; pointer-events: none; }
+  .cert-border-inner { position: absolute; inset: 10mm; border: 2px solid #a855f7; border-radius: 6mm; pointer-events: none; }
+  .cert-corner { position: absolute; width: 25mm; height: 25mm; background: linear-gradient(135deg, #7c3aed, #a855f7); opacity: 0.15; }
+  .cert-corner.tl { top: 0; left: 0; border-bottom-right-radius: 100%; }
+  .cert-corner.tr { top: 0; right: 0; border-bottom-left-radius: 100%; }
+  .cert-corner.bl { bottom: 0; left: 0; border-top-right-radius: 100%; }
+  .cert-corner.br { bottom: 0; right: 0; border-top-left-radius: 100%; }
+  .cert-watermark {
+    position: absolute; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 180mm; color: #7c3aed; opacity: 0.03;
+    font-weight: 900; pointer-events: none; user-select: none;
+  }
+  .cert-seal {
+    width: 35mm; height: 35mm; border-radius: 50%;
+    background: linear-gradient(135deg, #fbbf24, #f59e0b);
+    border: 3px dashed #92400e;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 5.5mm; color: #92400e; font-weight: 900;
+    text-align: center; line-height: 1;
+    box-shadow: 0 4px 12px rgba(245, 158, 11, 0.4);
+    flex-direction: column;
+  }
+  .sertifikat-preview-wrapper {
+    overflow-x: auto; overflow-y: hidden;
+    padding: 10px 0; -webkit-overflow-scrolling: touch;
+  }
+
+  @media print {
+    body { background: white !important; }
+    body * { visibility: hidden; }
+    #sertifikat-container, #sertifikat-container * { visibility: visible; }
+    #sertifikat-container { position: absolute; top: 0; left: 0; width: 100%; }
+    .no-print { display: none !important; }
+    .sertifikat-page {
+      box-shadow: none !important; margin: 0 !important;
+      border-radius: 0 !important; page-break-after: always;
+    }
+    @page { size: A4 landscape; margin: 0; }
   }
 </style>
 </head>
 <body class="min-h-screen flex flex-col">
 
-<!-- ============ SPLASH SCREEN ============ -->
+<!-- SPLASH -->
 <div id="splash" class="fixed inset-0 z-[200] gradient-purple flex flex-col items-center justify-center text-white">
   <div class="w-28 h-28 bg-white/15 backdrop-blur-lg rounded-[2rem] flex items-center justify-center mb-6 border-2 border-white/20 shadow-2xl">
     <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
       <rect x="4" y="8" width="16" height="12" rx="2"/>
       <circle cx="9" cy="14" r="1.5" fill="white"/>
       <circle cx="15" cy="14" r="1.5" fill="white"/>
-      <path d="M12 8V5"/>
-      <circle cx="12" cy="4" r="1"/>
+      <path d="M12 8V5"/><circle cx="12" cy="4" r="1"/>
       <path d="M4 12H2M22 12h-2M7 20v2M17 20v2"/>
     </svg>
   </div>
@@ -114,7 +149,7 @@
   </div>
 </div>
 
-<!-- ============ LOGIN ============ -->
+<!-- LOGIN -->
 <div id="login-wrapper" class="hidden flex-grow flex items-center justify-center p-6">
   <div class="w-full max-w-sm space-y-8 fade-in">
     <div class="text-center space-y-4">
@@ -151,9 +186,8 @@
   </div>
 </div>
 
-<!-- ============ APP WRAPPER ============ -->
+<!-- APP -->
 <div id="app-wrapper" class="hidden flex-col h-screen">
-
   <header class="bg-white border-b border-slate-100 sticky top-0 z-40 pt-[env(safe-area-inset-top)]">
     <div class="px-5 h-16 flex justify-between items-center">
       <div class="flex items-center space-x-3">
@@ -179,12 +213,8 @@
     </div>
   </header>
 
-  <main id="main-content" class="flex-grow overflow-y-auto pb-28 px-4 pt-5">
-
-    <!-- DASHBOARD -->
+  <main class="flex-grow overflow-y-auto pb-28 px-4 pt-5">
     <section id="tab-dashboard" class="tab-content hidden space-y-5"></section>
-
-    <!-- ADMIN -->
     <section id="tab-admin" class="tab-content hidden space-y-5">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">Kelola Siswa</h2>
@@ -205,7 +235,7 @@
             </div>
             <div>
               <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Usia</label>
-              <input type="number" id="add-usia" value="6" min="5" max="7" class="w-full mt-1 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none">
+              <input type="number" id="add-usia" value="6" min="4" max="8" class="w-full mt-1 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none">
             </div>
           </div>
           <div>
@@ -214,13 +244,7 @@
           </div>
           <div>
             <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Level Awal</label>
-            <select id="add-level" class="w-full mt-1 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none">
-              <option>Level 1: Robo Explorer</option>
-              <option>Level 2: Mechanic Engineering</option>
-              <option>Level 3: Smart Circuit</option>
-              <option>Level 4: Beginner Code</option>
-              <option>Level 5: Master Logic & Innovation</option>
-            </select>
+            <select id="add-level" class="w-full mt-1 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none"></select>
           </div>
           <div>
             <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Nama Wali</label>
@@ -249,11 +273,10 @@
       </div>
     </section>
 
-    <!-- GURU -->
     <section id="tab-guru" class="tab-content hidden space-y-5">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">Penilaian</h2>
-        <p class="text-xs text-slate-500 mt-1">Beri nilai sesuai rubrik silabus</p>
+        <p class="text-xs text-slate-500 mt-1">Beri nilai sesuai rubrik silabus (BB/MB/BSH/BSB)</p>
       </div>
       <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
         <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Siswa</label>
@@ -267,7 +290,6 @@
       <div id="guru-riwayat" class="hidden"></div>
     </section>
 
-    <!-- SILABUS -->
     <section id="tab-silabus" class="tab-content hidden space-y-5">
       <div class="flex items-center justify-between">
         <div>
@@ -284,7 +306,7 @@
         </div>
         <div class="flex-1">
           <p class="text-xs font-bold text-slate-800">Total Pertemuan</p>
-          <p class="text-[10px] text-slate-500">Kurikulum Robotic 5 Level</p>
+          <p class="text-[10px] text-slate-500">Kurikulum dinamis dari sheet</p>
         </div>
         <span id="total-pertemuan" class="text-2xl font-bold text-purple-600">0</span>
       </div>
@@ -293,19 +315,29 @@
       </div>
     </section>
 
-    <!-- ORTU -->
     <section id="tab-ortu" class="tab-content hidden space-y-5">
       <div id="ortu-header"></div>
       <div id="asesmen-card-wrapper" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft space-y-5">
         <div>
           <h2 class="text-lg font-bold text-slate-900">✨ Asesmen Awal</h2>
-          <p class="text-xs text-slate-500 mt-1">10 pertanyaan seru untuk memetakan kemampuan anak</p>
+          <p class="text-xs text-slate-500 mt-1">10 pertanyaan observasi untuk memetakan kemampuan anak</p>
         </div>
         <form id="form-10-soal" onsubmit="submitAsesmen10(event)" class="space-y-5"></form>
       </div>
       <div id="laporan-container" class="space-y-5"></div>
     </section>
 
+    <!-- TAB SERTIFIKAT -->
+    <section id="tab-sertifikat" class="tab-content hidden space-y-5">
+      <div class="flex items-center justify-between no-print">
+        <div>
+          <h2 class="text-2xl font-bold text-slate-900">🎓 Sertifikat</h2>
+          <p class="text-xs text-slate-500 mt-1">Sertifikat per level yang sudah diselesaikan</p>
+        </div>
+      </div>
+      <div id="sertifikat-list-level" class="space-y-3 no-print"></div>
+      <div id="sertifikat-container" class="hidden sertifikat-preview-wrapper"></div>
+    </section>
   </main>
 
   <nav id="bottom-nav" class="fixed bottom-0 left-0 right-0 bg-white border-t border-slate-100 z-50 pb-[env(safe-area-inset-bottom)]"></nav>
@@ -342,19 +374,15 @@
     </div>
     <div class="space-y-4">
       <div class="flex justify-center">
-        <div id="foto-preview" class="w-32 h-32 rounded-3xl gradient-purple flex items-center justify-center text-5xl text-white shadow-lg overflow-hidden">
+        <div class="w-32 h-32 rounded-3xl gradient-purple flex items-center justify-center text-5xl text-white shadow-lg overflow-hidden">
           <span id="foto-preview-placeholder">📷</span>
           <img id="foto-preview-img" class="hidden w-full h-full object-cover" />
         </div>
       </div>
       <input type="file" id="foto-input" accept="image/*" class="hidden" onchange="previewFoto(event)">
       <div class="grid grid-cols-2 gap-2">
-        <button onclick="document.getElementById('foto-input').click()" class="bg-slate-100 text-slate-700 font-semibold py-3.5 rounded-2xl active:scale-[0.98] transition-all text-sm">
-          📁 Pilih Foto
-        </button>
-        <button onclick="uploadFoto()" id="btn-upload" class="gradient-purple text-white font-semibold py-3.5 rounded-2xl active:scale-[0.98] transition-all text-sm shadow-lg shadow-purple-200">
-          ⬆️ Simpan
-        </button>
+        <button onclick="document.getElementById('foto-input').click()" class="bg-slate-100 text-slate-700 font-semibold py-3.5 rounded-2xl active:scale-[0.98] transition-all text-sm">📁 Pilih Foto</button>
+        <button onclick="uploadFoto()" class="gradient-purple text-white font-semibold py-3.5 rounded-2xl active:scale-[0.98] transition-all text-sm shadow-lg shadow-purple-200">⬆️ Simpan</button>
       </div>
       <p class="text-[10px] text-slate-400 text-center">Format: JPG/PNG, maks 5MB</p>
     </div>
@@ -365,10 +393,10 @@
 // ============================================================
 // KONFIGURASI
 // ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxmHL8ZS9kIDhHJVY3unlBE6iURR3RQpIAPt5VBrEB2XWPBW3qBiCW07XHAB8ub3vPF/execA";
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuHX4uIl2CYFOj_ggLUMtGry4twjJXzOObvXvkbnXYc-iea4e1Dd12MesDnjv3FlWfJQ/exec";
 
 // ============================================================
-// POPUP NOTIFIKASI CUSTOM
+// POPUP
 // ============================================================
 function showPopup(type, title, message, btnText = "OK") {
   return new Promise((resolve) => {
@@ -378,7 +406,6 @@ function showPopup(type, title, message, btnText = "OK") {
       warning: '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>',
       info:    '<svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>'
     };
-
     const overlay = document.createElement("div");
     overlay.className = "popup-overlay";
     overlay.innerHTML = `
@@ -387,20 +414,15 @@ function showPopup(type, title, message, btnText = "OK") {
         <h3 style="font-size:1rem;font-weight:800;color:#0f172a;margin-bottom:0.5rem">${title}</h3>
         <p style="font-size:0.75rem;color:#64748b;line-height:1.5;margin-bottom:1.25rem">${message}</p>
         <button id="popup-btn" class="gradient-purple" style="width:100%;color:white;font-weight:700;padding:0.85rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer;box-shadow:0 8px 20px -4px rgba(124,58,237,0.4)">${btnText}</button>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(overlay);
-
-    const close = () => {
-      overlay.style.animation = "overlayIn 0.2s ease-in reverse";
-      setTimeout(() => { overlay.remove(); resolve(); }, 180);
-    };
+    const close = () => { overlay.style.animation = "overlayIn 0.2s ease-in reverse"; setTimeout(() => { overlay.remove(); resolve(); }, 180); };
     overlay.querySelector("#popup-btn").onclick = close;
     overlay.onclick = (e) => { if (e.target === overlay) close(); };
   });
 }
 
-function showConfirm(title, message, btnYes = "Ya, Lanjutkan", btnNo = "Batal") {
+function showConfirm(title, message, btnYes = "Ya", btnNo = "Batal") {
   return new Promise((resolve) => {
     const overlay = document.createElement("div");
     overlay.className = "popup-overlay";
@@ -415,14 +437,9 @@ function showConfirm(title, message, btnYes = "Ya, Lanjutkan", btnNo = "Batal") 
           <button id="popup-no" style="flex:1;background:#f1f5f9;color:#475569;font-weight:700;padding:0.85rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer">${btnNo}</button>
           <button id="popup-yes" class="gradient-purple" style="flex:1;color:white;font-weight:700;padding:0.85rem;border-radius:1rem;font-size:0.8rem;border:none;cursor:pointer;box-shadow:0 8px 20px -4px rgba(124,58,237,0.4)">${btnYes}</button>
         </div>
-      </div>
-    `;
+      </div>`;
     document.body.appendChild(overlay);
-
-    const done = (val) => {
-      overlay.style.animation = "overlayIn 0.2s ease-in reverse";
-      setTimeout(() => { overlay.remove(); resolve(val); }, 180);
-    };
+    const done = (val) => { overlay.style.animation = "overlayIn 0.2s ease-in reverse"; setTimeout(() => { overlay.remove(); resolve(val); }, 180); };
     overlay.querySelector("#popup-yes").onclick = () => done(true);
     overlay.querySelector("#popup-no").onclick = () => done(false);
     overlay.onclick = (e) => { if (e.target === overlay) done(false); };
@@ -441,41 +458,22 @@ function showLoading(message = "Memproses...") {
       </div>
       <h3 style="font-size:0.95rem;font-weight:800;color:#0f172a;margin-bottom:0.35rem">Mohon Tunggu</h3>
       <p id="loading-msg" style="font-size:0.75rem;color:#64748b">${message}</p>
-    </div>
-  `;
+    </div>`;
   document.body.appendChild(overlay);
-
   return {
-    close: () => {
-      overlay.style.animation = "overlayIn 0.2s ease-in reverse";
-      setTimeout(() => overlay.remove(), 180);
-    },
-    update: (msg) => {
-      const el = overlay.querySelector("#loading-msg");
-      if (el) el.innerText = msg;
-    }
+    close: () => { overlay.style.animation = "overlayIn 0.2s ease-in reverse"; setTimeout(() => overlay.remove(), 180); },
+    update: (msg) => { const el = overlay.querySelector("#loading-msg"); if (el) el.innerText = msg; }
   };
 }
 
 function showToast(message, type = "success") {
-  const colors = {
-    success: { bg: "#10b981", icon: "✓" },
-    error:   { bg: "#f43f5e", icon: "✕" },
-    warning: { bg: "#f59e0b", icon: "!" },
-    info:    { bg: "#7c3aed", icon: "i" }
-  };
+  const colors = { success: { bg: "#10b981", icon: "✓" }, error: { bg: "#f43f5e", icon: "✕" }, warning: { bg: "#f59e0b", icon: "!" }, info: { bg: "#7c3aed", icon: "i" } };
   const c = colors[type] || colors.info;
   const toast = document.createElement("div");
   toast.className = "toast";
-  toast.innerHTML = `
-    <div style="width:1.5rem;height:1.5rem;background:${c.bg};color:white;border-radius:0.5rem;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;margin-right:0.5rem">${c.icon}</div>
-    <span style="color:#0f172a">${message}</span>
-  `;
+  toast.innerHTML = `<div style="width:1.5rem;height:1.5rem;background:${c.bg};color:white;border-radius:0.5rem;display:flex;align-items:center;justify-content:center;font-size:0.75rem;font-weight:800;margin-right:0.5rem">${c.icon}</div><span style="color:#0f172a">${message}</span>`;
   document.body.appendChild(toast);
-  setTimeout(() => {
-    toast.classList.add("fade-out");
-    setTimeout(() => toast.remove(), 300);
-  }, 2800);
+  setTimeout(() => { toast.classList.add("fade-out"); setTimeout(() => toast.remove(), 300); }, 2800);
 }
 
 // ============================================================
@@ -486,6 +484,7 @@ let globalNilai = [];
 let globalAsesmen = [];
 let globalAkun = [];
 let globalSilabus = [];
+let globalLevel = [];
 let currentLoggedInUser = null;
 let myChartInstance = null;
 let selectedSiswaId = "";
@@ -493,29 +492,18 @@ let selectedPertemuan = null;
 let editingSilabusPertemuan = null;
 let pendingFotoBase64 = null;
 let pendingFotoMime = null;
-
-const LEVEL_ORDER = [
-  "Level 1: Robo Explorer",
-  "Level 2: Mechanic Engineering",
-  "Level 3: Smart Circuit",
-  "Level 4: Beginner Code",
-  "Level 5: Master Logic & Innovation"
-];
+let sertifikatData = null;
 
 // ============================================================
-// HELPER FUNCTIONS
+// HELPER
 // ============================================================
 function getSkor(param, n) {
-  const val = n[`param${param}_skor`] ?? n[`parameter_${param}_skor`];
+  const val = n[`param${param}_skor`];
   const num = parseInt(val);
   return isNaN(num) ? 0 : num;
 }
-function getNama(param, n) {
-  return n[`param${param}_nama`] || n[`parameter_${param}_nama`] || `Parameter ${param}`;
-}
-function getCatatan(param, n) {
-  return n[`param${param}_catatan`] || n[`parameter_${param}_catatan`] || "";
-}
+function getNama(param, n) { return n[`param${param}_nama`] || `Parameter ${param}`; }
+function getCatatan(param, n) { return n[`param${param}_catatan`] || ""; }
 function esc(str) {
   if (str == null) return "";
   return String(str).replace(/[&<>"']/g, m => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[m]);
@@ -524,41 +512,22 @@ function fmtTanggal(ts) {
   try { return new Date(ts).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}); }
   catch(e) { return "-"; }
 }
-function getFotoSiswa(siswa) {
-  return siswa && siswa.foto_url ? siswa.foto_url : null;
-}
 
-/**
- * Render avatar siswa dengan fallback ke initial
- */
 function renderAvatar(siswa, size = 'md', shape = 'rounded') {
   const sizes = {
     sm: { w: '2.5rem', font: 'text-sm', radius: '0.75rem' },
-    md: { w: '3rem',   font: 'text-base', radius: '0.75rem' },
+    md: { w: '3rem', font: 'text-base', radius: '0.75rem' },
     lg: { w: '3.5rem', font: 'text-lg', radius: '1rem' },
-    xl: { w: '5rem',   font: 'text-2xl', radius: '1.5rem' }
+    xl: { w: '5rem', font: 'text-2xl', radius: '1.5rem' }
   };
   const s = sizes[size] || sizes.md;
   const radius = shape === 'circle' ? '9999px' : s.radius;
   const foto = siswa && siswa.foto_url ? siswa.foto_url : '';
   const initial = (siswa && siswa.nama_siswa) ? esc(siswa.nama_siswa).charAt(0) : '?';
-  const altText = (siswa && siswa.nama_siswa) ? esc(siswa.nama_siswa) : '';
-
   if (foto) {
-    return `
-      <img src="${esc(foto)}" alt="${altText}"
-           class="object-cover shrink-0"
-           style="width:${s.w};height:${s.w};border-radius:${radius}"
-           onerror="this.style.display='none';this.nextElementSibling.style.display='flex'">
-      <div class="gradient-purple text-white items-center justify-center font-bold shrink-0 ${s.font}"
-           style="width:${s.w};height:${s.w};border-radius:${radius};display:none">${initial}</div>
-    `;
-  } else {
-    return `
-      <div class="gradient-purple text-white flex items-center justify-center font-bold shrink-0 ${s.font}"
-           style="width:${s.w};height:${s.w};border-radius:${radius}">${initial}</div>
-    `;
+    return `<img src="${esc(foto)}" alt="" class="object-cover shrink-0" style="width:${s.w};height:${s.w};border-radius:${radius}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gradient-purple text-white items-center justify-center font-bold shrink-0 ${s.font}" style="width:${s.w};height:${s.w};border-radius:${radius};display:none">${initial}</div>`;
   }
+  return `<div class="gradient-purple text-white flex items-center justify-center font-bold shrink-0 ${s.font}" style="width:${s.w};height:${s.w};border-radius:${radius}">${initial}</div>`;
 }
 
 // ============================================================
@@ -574,7 +543,6 @@ window.onload = function() {
       document.getElementById("login-wrapper").classList.remove("hidden");
     }, 500);
   }, 1800);
-
   fetchDatabaseData();
 };
 
@@ -584,16 +552,19 @@ function fetchDatabaseData() {
     fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getAsesmen`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getAkun`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json())
+    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()),
+    fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json())
   ])
-  .then(([rS, rN, rA, rAk, rSil]) => {
+  .then(([rS, rN, rA, rAk, rSil, rLv]) => {
     globalSiswa = rS.data || [];
     globalNilai = rN.data || [];
     globalAsesmen = rA.data || [];
     globalAkun = rAk.data || [];
     globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+    globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
     document.getElementById("login-status").innerText = "✅ Sistem siap";
     populateAdminList();
+    populateLevelDropdown();
   })
   .catch(err => {
     document.getElementById("login-status").innerText = "❌ Gagal memuat data";
@@ -601,15 +572,23 @@ function fetchDatabaseData() {
   });
 }
 
+function populateLevelDropdown() {
+  const sel = document.getElementById("add-level");
+  if (!sel) return;
+  sel.innerHTML = globalLevel.map(l => `<option>${esc(l.level)}</option>`).join('') || '<option>Level 1</option>';
+}
+
 function refreshData(callback) {
   return Promise.all([
     fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json())
-  ]).then(([rN, rS, rSil]) => {
+    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()),
+    fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json())
+  ]).then(([rN, rS, rSil, rLv]) => {
     globalNilai = rN.data || [];
     globalSiswa = rS.data || [];
     globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+    globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
     if (callback) callback();
   });
 }
@@ -622,35 +601,28 @@ async function handleLogin(e) {
   const u = document.getElementById("login-username").value.trim();
   const p = document.getElementById("login-password").value.trim();
   const found = globalAkun.find(acc => String(acc.username).toLowerCase() === u.toLowerCase() && String(acc.password) === p);
-
-  if (!found) {
-    await showPopup("error", "Login Gagal", "Username atau Password salah. Silakan coba lagi.");
-    return;
-  }
-
+  if (!found) { await showPopup("error", "Login Gagal", "Username atau Password salah."); return; }
   currentLoggedInUser = found;
   document.getElementById("login-wrapper").classList.add("hidden");
   document.getElementById("app-wrapper").classList.remove("hidden");
+  document.getElementById("app-wrapper").classList.add("flex");
   document.getElementById("user-badge").innerText = found.nama_pemilik;
-
   const roleLabels = { superadmin: "Super Admin", admin: "Admin", guru: "Guru Pembimbing", ortu: "Orang Tua" };
   document.getElementById("header-role").innerText = roleLabels[found.role] || found.role;
-
   renderBottomNav(found.role);
-
   if (found.role === "superadmin") { switchTab('dashboard'); renderDashboard(); }
   else if (found.role === "admin") switchTab('admin');
   else if (found.role === "guru") { switchTab('guru'); populateDropdownSiswaGuru(); }
   else if (found.role === "ortu") { switchTab('ortu'); renderAsesmenForm(); renderLaporanAnak(); }
-
   showToast(`Selamat datang, ${found.nama_pemilik}!`, "success");
 }
 
 async function handleLogout() {
-  const ok = await showConfirm("Keluar Akun", "Yakin ingin keluar dari aplikasi?", "Ya, Keluar", "Batal");
+  const ok = await showConfirm("Keluar Akun", "Yakin ingin keluar?", "Ya, Keluar", "Batal");
   if (!ok) return;
   currentLoggedInUser = null;
   document.getElementById("app-wrapper").classList.add("hidden");
+  document.getElementById("app-wrapper").classList.remove("flex");
   document.getElementById("login-wrapper").classList.remove("hidden");
   document.getElementById("bottom-nav").innerHTML = "";
   showToast("Berhasil logout", "info");
@@ -663,10 +635,11 @@ function renderBottomNav(role) {
   const nav = document.getElementById("bottom-nav");
   const icons = {
     dashboard: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>`,
-    admin: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>`,
+    admin: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
     guru: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
     silabus: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
-    ortu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`
+    ortu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
+    sertifikat: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`
   };
 
   let items = [];
@@ -684,31 +657,27 @@ function renderBottomNav(role) {
     { key: 'silabus', icon: icons.silabus, label: 'Silabus' }
   ];
   else if (role === "ortu") items = [
-    { key: 'ortu', icon: icons.ortu, label: 'Rapor' }
+    { key: 'ortu', icon: icons.ortu, label: 'Rapor' },
+    { key: 'sertifikat', icon: icons.sertifikat, label: 'Sertifikat' }
   ];
 
   nav.innerHTML = `<div class="flex justify-around items-center pt-3 pb-2">${items.map(it => `
     <button onclick="switchTab('${it.key}')" id="nav-${it.key}" class="nav-btn flex flex-col items-center space-y-1 px-5 py-1 rounded-xl transition-all text-slate-400">
       ${it.icon}
       <span class="text-[10px] font-bold">${it.label}</span>
-    </button>
-  `).join('')}</div>`;
+    </button>`).join('')}</div>`;
 }
 
 function switchTab(key) {
   document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
   const tab = document.getElementById(`tab-${key}`);
   if (tab) { tab.classList.remove('hidden'); tab.classList.add('fade-in'); }
-
-  document.querySelectorAll('.nav-btn').forEach(btn => {
-    btn.classList.remove('nav-active');
-    btn.classList.add('text-slate-400');
-  });
+  document.querySelectorAll('.nav-btn').forEach(btn => { btn.classList.remove('nav-active'); btn.classList.add('text-slate-400'); });
   const btn = document.getElementById(`nav-${key}`);
   if (btn) { btn.classList.add('nav-active'); btn.classList.remove('text-slate-400'); }
-
   if (key === 'silabus') renderSilabusList();
   if (key === 'dashboard') renderDashboard();
+  if (key === 'sertifikat') loadSertifikatList();
 }
 
 // ============================================================
@@ -719,7 +688,6 @@ function populateAdminList() {
   const total = document.getElementById("admin-total-siswa");
   if (total) total.innerText = globalSiswa.length;
   if (!list) return;
-
   if (globalSiswa.length === 0) {
     list.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada siswa terdaftar.</p>`;
     return;
@@ -732,14 +700,12 @@ function populateAdminList() {
         <p class="text-[10px] text-slate-500 truncate">${esc(s.siswa_id)} • ${s.usia} thn • ${esc(s.level_saat_ini)}</p>
       </div>
       ${s.foto_url ? '<div class="text-[9px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold shrink-0">📷</div>' : ''}
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 async function tambahSiswa(e) {
   e.preventDefault();
   const loading = showLoading("Menyimpan siswa...");
-
   const payload = {
     action: "addSiswa",
     id: document.getElementById("add-id").value,
@@ -750,7 +716,6 @@ async function tambahSiswa(e) {
     username: document.getElementById("add-username").value,
     password: document.getElementById("add-password").value
   };
-
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1200));
@@ -761,13 +726,13 @@ async function tambahSiswa(e) {
     e.target.reset();
   } catch (err) {
     loading.close();
-    await showPopup("error", "Gagal", "Terjadi kesalahan saat menyimpan data.");
+    await showPopup("error", "Gagal", "Terjadi kesalahan.");
     console.error(err);
   }
 }
 
 // ============================================================
-// GURU - PENILAIAN
+// GURU - PENILAIAN (Skala BB/MB/BSH/BSB)
 // ============================================================
 function populateDropdownSiswaGuru() {
   const sel = document.getElementById("guru-pilih-siswa");
@@ -779,17 +744,14 @@ function populateDropdownSiswaGuru() {
 function onPilihSiswa() {
   selectedSiswaId = document.getElementById("guru-pilih-siswa").value;
   selectedPertemuan = null;
-
   const infoBox = document.getElementById("guru-info-siswa");
   const stepPertemuan = document.getElementById("guru-step-pertemuan");
   const formBox = document.getElementById("guru-form-penilaian");
   const riwayatBox = document.getElementById("guru-riwayat");
 
   if (!selectedSiswaId) {
-    infoBox.classList.add("hidden");
-    stepPertemuan.classList.add("hidden");
-    formBox.classList.add("hidden");
-    riwayatBox.classList.add("hidden");
+    infoBox.classList.add("hidden"); stepPertemuan.classList.add("hidden");
+    formBox.classList.add("hidden"); riwayatBox.classList.add("hidden");
     return;
   }
 
@@ -804,12 +766,11 @@ function onPilihSiswa() {
   });
   const pertemuanSudahDinilai = new Set(Array.from(um.keys()));
   const totalDinilai = pertemuanSudahDinilai.size;
+  const totalAll = globalSilabus.length;
 
   infoBox.innerHTML = `
     <div class="flex items-center space-x-4">
-      <div class="relative">
-        ${renderAvatar(siswa, 'xl', 'circle')}
-      </div>
+      <div class="relative">${renderAvatar(siswa, 'xl', 'circle')}</div>
       <div class="flex-1 min-w-0">
         <h3 class="text-lg font-bold truncate">${esc(siswa.nama_siswa)}</h3>
         <p class="text-xs text-white/80 mt-1">${esc(siswa.level_saat_ini)}</p>
@@ -819,16 +780,16 @@ function onPilihSiswa() {
     <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3 space-y-2">
       <div class="flex justify-between text-xs">
         <span class="text-white/80">Progress Penilaian</span>
-        <span class="font-bold">${totalDinilai}/28 pertemuan</span>
+        <span class="font-bold">${totalDinilai}/${totalAll} pertemuan</span>
       </div>
       <div class="w-full bg-white/20 rounded-full h-2">
-        <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${(totalDinilai/28)*100}%"></div>
+        <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${totalAll > 0 ? (totalDinilai/totalAll)*100 : 0}%"></div>
       </div>
-    </div>
-  `;
+    </div>`;
   infoBox.classList.remove("hidden");
 
-  const available = globalSilabus.filter(sil => !pertemuanSudahDinilai.has(String(sil.pertemuan))).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+  const available = globalSilabus.filter(sil => !pertemuanSudahDinilai.has(String(sil.pertemuan)))
+    .sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
 
   stepPertemuan.innerHTML = `
     <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Pertemuan</label>
@@ -836,14 +797,10 @@ function onPilihSiswa() {
       ${available.length === 0
         ? `<option value="">🎉 Semua pertemuan sudah dinilai!</option>`
         : `<option value="">-- Pilih Pertemuan --</option>` + available.map(sil => `<option value="${sil.pertemuan}">P${sil.pertemuan} - ${esc(sil.judul)}</option>`).join('')}
-    </select>
-    <p class="text-[10px] text-slate-400 mt-2 ml-1">💡 Hanya pertemuan yang belum dinilai yang muncul</p>
-  `;
+    </select>`;
   stepPertemuan.classList.remove("hidden");
-
   formBox.classList.add("hidden");
   formBox.innerHTML = "";
-
   renderRiwayatPenilaian(Array.from(um.values()));
   riwayatBox.classList.remove("hidden");
 }
@@ -869,17 +826,20 @@ function renderFormPenilaian(sil, existing) {
   const p2Skor = isEdit ? getSkor(2, existing) : 3;
   const p2Cat = isEdit ? getCatatan(2, existing) : '';
 
-  const opt = (name, val, warna, label, desc, checked) => `
-    <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3.5 rounded-2xl cursor-pointer active:scale-[0.99] transition-all">
-      <div class="flex items-start space-x-3">
-        <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-1">
-        <div class="flex-1">
-          <span class="text-[10px] font-bold ${warna} uppercase tracking-wider">Skor ${val} - ${label}</span>
-          <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${esc(desc)}</p>
+  // Skala BB/MB/BSH/BSB
+  const opt = (name, val, label, desc, checked) => {
+    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600' };
+    return `
+      <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3.5 rounded-2xl cursor-pointer active:scale-[0.99] transition-all">
+        <div class="flex items-start space-x-3">
+          <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-1">
+          <div class="flex-1">
+            <span class="text-[10px] font-bold ${colors[val]} uppercase tracking-wider">Skor ${val} - ${label}</span>
+            <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${esc(desc)}</p>
+          </div>
         </div>
-      </div>
-    </label>
-  `;
+      </label>`;
+  };
 
   formBox.innerHTML = `
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft space-y-5">
@@ -898,9 +858,10 @@ function renderFormPenilaian(sil, existing) {
           <h4 class="text-sm font-bold text-slate-800">${esc(sil.param1_nama)}</h4>
         </div>
         <div class="space-y-2">
-          ${opt('p1_skor', 1, 'text-rose-600', 'Beginning', sil.param1_skor1, p1Skor)}
-          ${opt('p1_skor', 2, 'text-amber-600', 'Developing', sil.param1_skor2, p1Skor)}
-          ${opt('p1_skor', 3, 'text-emerald-600', 'Accomplished', sil.param1_skor3, p1Skor)}
+          ${opt('p1_skor', 1, 'BB (Belum Berkembang)', sil.param1_skor1, p1Skor)}
+          ${opt('p1_skor', 2, 'MB (Mulai Berkembang)', sil.param1_skor2, p1Skor)}
+          ${opt('p1_skor', 3, 'BSH (Berkembang Sesuai Harapan)', sil.param1_skor3, p1Skor)}
+          ${opt('p1_skor', 4, 'BSB (Berkembang Sangat Baik)', sil.param1_skor4, p1Skor)}
         </div>
         <input type="text" id="p1_catatan" value="${esc(p1Cat)}" placeholder="Catatan (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
       </div>
@@ -911,9 +872,10 @@ function renderFormPenilaian(sil, existing) {
           <h4 class="text-sm font-bold text-slate-800">${esc(sil.param2_nama)}</h4>
         </div>
         <div class="space-y-2">
-          ${opt('p2_skor', 1, 'text-rose-600', 'Beginning', sil.param2_skor1, p2Skor)}
-          ${opt('p2_skor', 2, 'text-amber-600', 'Developing', sil.param2_skor2, p2Skor)}
-          ${opt('p2_skor', 3, 'text-emerald-600', 'Accomplished', sil.param2_skor3, p2Skor)}
+          ${opt('p2_skor', 1, 'BB (Belum Berkembang)', sil.param2_skor1, p2Skor)}
+          ${opt('p2_skor', 2, 'MB (Mulai Berkembang)', sil.param2_skor2, p2Skor)}
+          ${opt('p2_skor', 3, 'BSH (Berkembang Sesuai Harapan)', sil.param2_skor3, p2Skor)}
+          ${opt('p2_skor', 4, 'BSB (Berkembang Sangat Baik)', sil.param2_skor4, p2Skor)}
         </div>
         <input type="text" id="p2_catatan" value="${esc(p2Cat)}" placeholder="Catatan (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
       </div>
@@ -921,8 +883,7 @@ function renderFormPenilaian(sil, existing) {
       <button onclick="submitPenilaian()" class="${isEdit ? 'bg-amber-500 shadow-amber-200' : 'gradient-purple shadow-purple-200'} w-full text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg">
         ${isEdit ? '💾 Update Nilai' : '📤 Simpan Penilaian'}
       </button>
-    </div>
-  `;
+    </div>`;
 
   formBox.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', function() {
@@ -938,14 +899,9 @@ function renderFormPenilaian(sil, existing) {
 async function submitPenilaian() {
   const p1 = document.querySelector('input[name="p1_skor"]:checked');
   const p2 = document.querySelector('input[name="p2_skor"]:checked');
-  if (!p1 || !p2) {
-    await showPopup("warning", "Data Belum Lengkap", "Mohon pilih skor untuk semua parameter penilaian.");
-    return;
-  }
-
+  if (!p1 || !p2) { await showPopup("warning", "Data Belum Lengkap", "Mohon pilih skor untuk semua parameter."); return; }
   const sil = globalSilabus.find(s => String(s.pertemuan) === String(selectedPertemuan));
   const loading = showLoading("Menyimpan penilaian...");
-
   const payload = {
     action: "saveNilai",
     siswaId: selectedSiswaId,
@@ -957,7 +913,6 @@ async function submitPenilaian() {
     param2_skor: p2.value,
     param2_catatan: document.getElementById("p2_catatan").value
   };
-
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1200));
@@ -967,7 +922,7 @@ async function submitPenilaian() {
     showToast("Penilaian tersimpan", "success");
   } catch (err) {
     loading.close();
-    await showPopup("error", "Gagal", "Terjadi kesalahan saat menyimpan penilaian.");
+    await showPopup("error", "Gagal", "Terjadi kesalahan.");
     console.error(err);
   }
 }
@@ -975,7 +930,6 @@ async function submitPenilaian() {
 function renderRiwayatPenilaian(nilaiSiswa) {
   const box = document.getElementById("guru-riwayat");
   const sorted = [...nilaiSiswa].sort((a,b) => parseInt(b.pertemuan) - parseInt(a.pertemuan));
-
   box.innerHTML = `
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft fade-in">
       <div class="flex items-center justify-between mb-4">
@@ -985,10 +939,8 @@ function renderRiwayatPenilaian(nilaiSiswa) {
       <div class="space-y-2.5 max-h-96 overflow-y-auto">
         ${sorted.length === 0 ? `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada penilaian.</p>` :
           sorted.map(n => {
-            const s1 = getSkor(1, n);
-            const s2 = getSkor(2, n);
-            const total = s1 + s2;
-            const warna = total >= 5 ? 'text-emerald-600 bg-emerald-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+            const s1 = getSkor(1, n), s2 = getSkor(2, n), total = s1 + s2;
+            const warna = total >= 7 ? 'text-emerald-600 bg-emerald-50' : total >= 5 ? 'text-blue-600 bg-blue-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
             return `
               <div class="p-4 bg-slate-50 rounded-2xl">
                 <div class="flex justify-between items-start mb-3">
@@ -996,56 +948,49 @@ function renderRiwayatPenilaian(nilaiSiswa) {
                     <p class="text-sm font-bold text-slate-800">Pertemuan ${n.pertemuan}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">${fmtTanggal(n.timestamp)}</p>
                   </div>
-                  <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${warna} shrink-0 ml-2">${total}/6</span>
+                  <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${warna} shrink-0 ml-2">${total}/8</span>
                 </div>
                 <div class="space-y-1.5 mb-3">
                   <div class="flex justify-between text-[11px]">
                     <span class="text-slate-600 truncate pr-2">${esc(getNama(1, n))}</span>
-                    <span class="font-bold text-purple-600 shrink-0">${s1}/3</span>
+                    <span class="font-bold text-purple-600 shrink-0">${s1}/4</span>
                   </div>
                   <div class="flex justify-between text-[11px]">
                     <span class="text-slate-600 truncate pr-2">${esc(getNama(2, n))}</span>
-                    <span class="font-bold text-purple-600 shrink-0">${s2}/3</span>
+                    <span class="font-bold text-purple-600 shrink-0">${s2}/4</span>
                   </div>
                 </div>
-                <button onclick="openModalEdit('${esc(n.siswa_id)}', '${n.pertemuan}')"
-                        class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">
-                  ✏️ Edit Nilai
-                </button>
-              </div>
-            `;
+                <button onclick="openModalEdit('${esc(n.siswa_id)}', '${n.pertemuan}')" class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">✏️ Edit Nilai</button>
+              </div>`;
           }).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 // ============================================================
-// MODAL EDIT NILAI
+// MODAL EDIT
 // ============================================================
 function openModalEdit(siswaId, pertemuan) {
   const nilai = globalNilai.find(n => String(n.siswa_id) === String(siswaId) && String(n.pertemuan) === String(pertemuan));
   if (!nilai) return;
   const sil = globalSilabus.find(s => String(s.pertemuan) === String(pertemuan));
   if (!sil) return;
-
   const modal = document.getElementById("modal-edit");
   const content = document.getElementById("modal-edit-content");
-  const p1Skor = getSkor(1, nilai);
-  const p2Skor = getSkor(2, nilai);
-
-  const opt = (name, val, label, desc, checked) => `
-    <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3 rounded-2xl cursor-pointer">
-      <div class="flex items-start space-x-2">
-        <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-0.5">
-        <div class="flex-1">
-          <span class="text-[10px] font-bold ${val==1?'text-rose-600':val==2?'text-amber-600':'text-emerald-600'} uppercase">Skor ${val} - ${label}</span>
-          <p class="text-[10px] text-slate-600 mt-0.5">${esc(desc)}</p>
+  const p1Skor = getSkor(1, nilai), p2Skor = getSkor(2, nilai);
+  const opt = (name, val, label, desc, checked) => {
+    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600' };
+    return `
+      <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3 rounded-2xl cursor-pointer">
+        <div class="flex items-start space-x-2">
+          <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-0.5">
+          <div class="flex-1">
+            <span class="text-[10px] font-bold ${colors[val]} uppercase">Skor ${val} - ${label}</span>
+            <p class="text-[10px] text-slate-600 mt-0.5">${esc(desc)}</p>
+          </div>
         </div>
-      </div>
-    </label>
-  `;
-
+      </label>`;
+  };
   content.innerHTML = `
     <div class="space-y-1">
       <span class="text-[10px] font-bold text-purple-600 uppercase">Pertemuan ${pertemuan}</span>
@@ -1055,27 +1000,25 @@ function openModalEdit(siswaId, pertemuan) {
       <div>
         <h4 class="text-xs font-bold text-slate-800 mb-2">${esc(sil.param1_nama)}</h4>
         <div class="space-y-1.5">
-          ${opt('edit_p1', 1, 'Beginning', sil.param1_skor1, p1Skor)}
-          ${opt('edit_p1', 2, 'Developing', sil.param1_skor2, p1Skor)}
-          ${opt('edit_p1', 3, 'Accomplished', sil.param1_skor3, p1Skor)}
+          ${opt('edit_p1', 1, 'BB', sil.param1_skor1, p1Skor)}
+          ${opt('edit_p1', 2, 'MB', sil.param1_skor2, p1Skor)}
+          ${opt('edit_p1', 3, 'BSH', sil.param1_skor3, p1Skor)}
+          ${opt('edit_p1', 4, 'BSB', sil.param1_skor4, p1Skor)}
         </div>
         <input type="text" id="edit_p1_catatan" value="${esc(getCatatan(1, nilai))}" placeholder="Catatan" class="w-full mt-2 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
       </div>
       <div>
         <h4 class="text-xs font-bold text-slate-800 mb-2">${esc(sil.param2_nama)}</h4>
         <div class="space-y-1.5">
-          ${opt('edit_p2', 1, 'Beginning', sil.param2_skor1, p2Skor)}
-          ${opt('edit_p2', 2, 'Developing', sil.param2_skor2, p2Skor)}
-          ${opt('edit_p2', 3, 'Accomplished', sil.param2_skor3, p2Skor)}
+          ${opt('edit_p2', 1, 'BB', sil.param2_skor1, p2Skor)}
+          ${opt('edit_p2', 2, 'MB', sil.param2_skor2, p2Skor)}
+          ${opt('edit_p2', 3, 'BSH', sil.param2_skor3, p2Skor)}
+          ${opt('edit_p2', 4, 'BSB', sil.param2_skor4, p2Skor)}
         </div>
         <input type="text" id="edit_p2_catatan" value="${esc(getCatatan(2, nilai))}" placeholder="Catatan" class="w-full mt-2 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
       </div>
     </div>
-    <button onclick="submitEditNilai('${esc(siswaId)}', '${pertemuan}')" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
-      💾 Simpan Perubahan
-    </button>
-  `;
-
+    <button onclick="submitEditNilai('${esc(siswaId)}', '${pertemuan}')" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">💾 Simpan Perubahan</button>`;
   modal.classList.remove("hidden");
   content.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', function() {
@@ -1093,32 +1036,23 @@ function closeModalEdit() { document.getElementById("modal-edit").classList.add(
 async function submitEditNilai(siswaId, pertemuan) {
   const p1 = document.querySelector('input[name="edit_p1"]:checked');
   const p2 = document.querySelector('input[name="edit_p2"]:checked');
-  if (!p1 || !p2) {
-    await showPopup("warning", "Data Belum Lengkap", "Isi semua parameter penilaian.");
-    return;
-  }
-
+  if (!p1 || !p2) { await showPopup("warning", "Data Belum Lengkap", "Isi semua parameter."); return; }
   const sil = globalSilabus.find(s => String(s.pertemuan) === String(pertemuan));
   const loading = showLoading("Menyimpan perubahan...");
-
   const payload = {
     action: "saveNilai",
-    siswaId: siswaId,
-    pertemuan: pertemuan,
-    param1_nama: sil.param1_nama,
-    param1_skor: p1.value,
+    siswaId, pertemuan,
+    param1_nama: sil.param1_nama, param1_skor: p1.value,
     param1_catatan: document.getElementById("edit_p1_catatan").value,
-    param2_nama: sil.param2_nama,
-    param2_skor: p2.value,
+    param2_nama: sil.param2_nama, param2_skor: p2.value,
     param2_catatan: document.getElementById("edit_p2_catatan").value
   };
-
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1000));
     loading.close();
     closeModalEdit();
-    await showPopup("success", "Terupdate!", "Perubahan nilai berhasil disimpan.");
+    await showPopup("success", "Terupdate!", "Perubahan nilai disimpan.");
     refreshData(() => onPilihSiswa());
     showToast("Nilai diperbarui", "success");
   } catch (err) {
@@ -1129,25 +1063,22 @@ async function submitEditNilai(siswaId, pertemuan) {
 }
 
 // ============================================================
-// SILABUS CRUD
+// SILABUS
 // ============================================================
 function renderSilabusList() {
   const box = document.getElementById("silabus-list");
   const total = document.getElementById("total-pertemuan");
   if (total) total.innerText = globalSilabus.length;
-
   if (!box) return;
   if (globalSilabus.length === 0) {
-    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Silabus kosong. Klik + untuk menambah.</p>`;
+    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Silabus kosong. Klik + untuk menambah, atau isi langsung di Google Sheet.</p>`;
     return;
   }
-
   const groups = {};
   globalSilabus.forEach(sil => {
     if (!groups[sil.level]) groups[sil.level] = [];
     groups[sil.level].push(sil);
   });
-
   box.innerHTML = Object.entries(groups).map(([level, items]) => `
     <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft">
       <h3 class="text-[11px] font-bold text-purple-600 uppercase tracking-wider mb-3 px-1">${esc(level)}</h3>
@@ -1169,11 +1100,9 @@ function renderSilabusList() {
             <button onclick="hapusSilabusKonfirmasi('${sil.pertemuan}')" class="w-11 h-11 bg-rose-50 hover:bg-rose-100 rounded-2xl flex items-center justify-center active:scale-95 transition-all shrink-0">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
             </button>
-          </div>
-        `).join('')}
+          </div>`).join('')}
       </div>
-    </div>
-  `).join('');
+    </div>`).join('');
 }
 
 function openModalSilabusBaru() {
@@ -1181,13 +1110,12 @@ function openModalSilabusBaru() {
   document.getElementById("modal-silabus-title").innerText = "➕ Tambah Pertemuan";
   const content = document.getElementById("modal-silabus-content");
   const nextNum = globalSilabus.length > 0 ? Math.max(...globalSilabus.map(s => parseInt(s.pertemuan))) + 1 : 1;
-
+  const firstLevel = globalLevel.length > 0 ? globalLevel[0].level : "";
   content.innerHTML = formSilabusHTML({
-    pertemuan: nextNum, level: LEVEL_ORDER[0], judul: "", praktik: "",
-    param1_nama: "", param1_skor1: "", param1_skor2: "", param1_skor3: "",
-    param2_nama: "", param2_skor1: "", param2_skor2: "", param2_skor3: ""
+    pertemuan: nextNum, level: firstLevel, judul: "", praktik: "",
+    param1_nama: "", param1_skor1: "", param1_skor2: "", param1_skor3: "", param1_skor4: "",
+    param2_nama: "", param2_skor1: "", param2_skor2: "", param2_skor3: "", param2_skor4: ""
   }, false);
-
   document.getElementById("modal-silabus").classList.remove("hidden");
 }
 
@@ -1207,40 +1135,35 @@ function formSilabusHTML(sil, isEdit) {
       ${multiline
         ? `<textarea id="${id}" rows="2" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${esc(val)}</textarea>`
         : `<input type="text" id="${id}" value="${esc(val)}" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">`}
-    </div>
-  `;
-
+    </div>`;
+  const levelOptions = globalLevel.map(l => `<option ${sil.level === l.level ? 'selected' : ''}>${esc(l.level)}</option>`).join('');
   return `
     ${field('sil_pertemuan', 'Pertemuan Ke-', sil.pertemuan)}
     <div>
       <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Level</label>
-      <select id="sil_level" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
-        ${LEVEL_ORDER.map(l => `<option ${sil.level === l ? 'selected' : ''}>${l}</option>`).join('')}
-      </select>
+      <select id="sil_level" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${levelOptions}</select>
     </div>
     ${field('sil_judul', 'Judul Materi', sil.judul)}
     ${field('sil_praktik', 'Praktik Kelas', sil.praktik, true)}
-
     <div class="pt-3 border-t border-slate-100 space-y-3">
       <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">📌 Parameter 1</p>
       ${field('sil_p1_nama', 'Nama Parameter', sil.param1_nama)}
-      ${field('sil_p1_s1', 'Skor 1 - Beginning', sil.param1_skor1, true)}
-      ${field('sil_p1_s2', 'Skor 2 - Developing', sil.param1_skor2, true)}
-      ${field('sil_p1_s3', 'Skor 3 - Accomplished', sil.param1_skor3, true)}
+      ${field('sil_p1_s1', 'Skor 1 - BB (Belum Berkembang)', sil.param1_skor1, true)}
+      ${field('sil_p1_s2', 'Skor 2 - MB (Mulai Berkembang)', sil.param1_skor2, true)}
+      ${field('sil_p1_s3', 'Skor 3 - BSH (Berkembang Sesuai Harapan)', sil.param1_skor3, true)}
+      ${field('sil_p1_s4', 'Skor 4 - BSB (Berkembang Sangat Baik)', sil.param1_skor4, true)}
     </div>
-
     <div class="pt-3 border-t border-slate-100 space-y-3">
       <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">📌 Parameter 2</p>
       ${field('sil_p2_nama', 'Nama Parameter', sil.param2_nama)}
-      ${field('sil_p2_s1', 'Skor 1 - Beginning', sil.param2_skor1, true)}
-      ${field('sil_p2_s2', 'Skor 2 - Developing', sil.param2_skor2, true)}
-      ${field('sil_p2_s3', 'Skor 3 - Accomplished', sil.param2_skor3, true)}
+      ${field('sil_p2_s1', 'Skor 1 - BB (Belum Berkembang)', sil.param2_skor1, true)}
+      ${field('sil_p2_s2', 'Skor 2 - MB (Mulai Berkembang)', sil.param2_skor2, true)}
+      ${field('sil_p2_s3', 'Skor 3 - BSH (Berkembang Sesuai Harapan)', sil.param2_skor3, true)}
+      ${field('sil_p2_s4', 'Skor 4 - BSB (Berkembang Sangat Baik)', sil.param2_skor4, true)}
     </div>
-
     <button onclick="submitSilabus(${isEdit})" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
       ${isEdit ? '💾 Simpan Perubahan' : '➕ Tambah Pertemuan'}
-    </button>
-  `;
+    </button>`;
 }
 
 function closeModalSilabus() { document.getElementById("modal-silabus").classList.add("hidden"); }
@@ -1255,50 +1178,47 @@ async function submitSilabus(isEdit) {
     param1_skor1: document.getElementById("sil_p1_s1").value,
     param1_skor2: document.getElementById("sil_p1_s2").value,
     param1_skor3: document.getElementById("sil_p1_s3").value,
+    param1_skor4: document.getElementById("sil_p1_s4").value,
     param2_nama: document.getElementById("sil_p2_nama").value,
     param2_skor1: document.getElementById("sil_p2_s1").value,
     param2_skor2: document.getElementById("sil_p2_s2").value,
     param2_skor3: document.getElementById("sil_p2_s3").value,
+    param2_skor4: document.getElementById("sil_p2_s4").value
   };
-
   const loading = showLoading(isEdit ? "Menyimpan perubahan..." : "Menambahkan pertemuan...");
-
   try {
     if (isEdit) {
       const idx = globalSilabus.findIndex(s => String(s.pertemuan) === String(editingSilabusPertemuan));
       if (idx >= 0) globalSilabus[idx] = { ...globalSilabus[idx], ...data };
-
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "updateSilabus", silabus: globalSilabus }) });
     } else {
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "tambahSilabus", ...data }) });
     }
-
     await new Promise(r => setTimeout(r, 1200));
     loading.close();
     closeModalSilabus();
-    await showPopup("success", "Berhasil!", isEdit ? "Silabus berhasil diperbarui." : "Pertemuan baru telah ditambahkan.");
+    await showPopup("success", "Berhasil!", isEdit ? "Silabus diperbarui." : "Pertemuan baru ditambahkan.");
     refreshData(() => renderSilabusList());
     showToast(isEdit ? "Silabus diperbarui" : "Pertemuan ditambahkan", "success");
   } catch (err) {
     loading.close();
-    await showPopup("error", "Gagal", "Terjadi kesalahan saat menyimpan silabus.");
+    await showPopup("error", "Gagal", "Terjadi kesalahan.");
     console.error(err);
   }
 }
 
 async function hapusSilabusKonfirmasi(pertemuan) {
-  const ok = await showConfirm("Hapus Pertemuan?", `Yakin ingin menghapus Pertemuan ${pertemuan} dari silabus? Data nilai terkait tidak akan terhapus.`, "Ya, Hapus", "Batal");
+  const ok = await showConfirm("Hapus Pertemuan?", `Yakin hapus Pertemuan ${pertemuan}?`, "Ya, Hapus", "Batal");
   if (!ok) return;
-
-  const loading = showLoading("Menghapus pertemuan...");
+  const loading = showLoading("Menghapus...");
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "hapusSilabus", pertemuan: pertemuan }) });
+      body: JSON.stringify({ action: "hapusSilabus", pertemuan }) });
     await new Promise(r => setTimeout(r, 1000));
     loading.close();
-    await showPopup("success", "Terhapus!", `Pertemuan ${pertemuan} berhasil dihapus dari silabus.`);
+    await showPopup("success", "Terhapus!", `Pertemuan ${pertemuan} dihapus.`);
     refreshData(() => renderSilabusList());
     showToast("Pertemuan dihapus", "success");
   } catch (err) {
@@ -1309,20 +1229,14 @@ async function hapusSilabusKonfirmasi(pertemuan) {
 }
 
 // ============================================================
-// DASHBOARD SUPERADMIN
+// DASHBOARD
 // ============================================================
 function renderDashboard() {
   const box = document.getElementById("tab-dashboard");
   if (!box) return;
-
   const totalSiswa = globalSiswa.length;
-
-  const levelDist = {};
-  LEVEL_ORDER.forEach(l => levelDist[l] = 0);
-  globalSiswa.forEach(s => {
-    const match = LEVEL_ORDER.find(l => String(s.level_saat_ini).includes(l.split(':')[0]));
-    if (match) levelDist[match]++;
-  });
+  const totalPertemuan = globalSilabus.length;
+  const totalNilai = globalNilai.length;
 
   const stats = globalSiswa.map(s => {
     const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(s.siswa_id));
@@ -1332,7 +1246,8 @@ function renderDashboard() {
       if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
     });
     const total = Array.from(um.values()).reduce((sum, n) => sum + getSkor(1, n) + getSkor(2, n), 0);
-    return { ...s, totalSkor: total, count: um.size, persen: ((total/168)*100).toFixed(1) };
+    const maxSkor = totalPertemuan * 8;
+    return { ...s, totalSkor: total, count: um.size, persen: maxSkor > 0 ? ((total/maxSkor)*100).toFixed(1) : 0 };
   }).sort((a,b) => b.totalSkor - a.totalSkor);
 
   box.innerHTML = `
@@ -1340,46 +1255,20 @@ function renderDashboard() {
       <h2 class="text-2xl font-bold text-slate-900">Dashboard</h2>
       <p class="text-xs text-slate-500 mt-1">Pantau perkembangan seluruh siswa</p>
     </div>
-
-    <div class="grid grid-cols-2 gap-3">
-      <div class="gradient-purple p-5 rounded-3xl text-white shadow-soft">
-        <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-3">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>
-        </div>
-        <p class="text-[10px] uppercase tracking-wider text-white/70">Total Siswa</p>
-        <p class="text-3xl font-bold mt-1">${totalSiswa}</p>
+    <div class="grid grid-cols-3 gap-2">
+      <div class="gradient-purple p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Siswa</p>
+        <p class="text-2xl font-bold mt-1">${totalSiswa}</p>
       </div>
-      <div class="gradient-green p-5 rounded-3xl text-white shadow-soft">
-        <div class="w-10 h-10 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center mb-3">
-          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-        </div>
-        <p class="text-[10px] uppercase tracking-wider text-white/70">Total Nilai</p>
-        <p class="text-3xl font-bold mt-1">${globalNilai.length}</p>
+      <div class="gradient-green p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Pertemuan</p>
+        <p class="text-2xl font-bold mt-1">${totalPertemuan}</p>
+      </div>
+      <div class="gradient-blue p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Nilai</p>
+        <p class="text-2xl font-bold mt-1">${totalNilai}</p>
       </div>
     </div>
-
-    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
-      <h3 class="text-sm font-bold text-slate-900 mb-4">🎯 Distribusi Level</h3>
-      <div class="space-y-3">
-        ${LEVEL_ORDER.map((l, i) => {
-          const c = levelDist[l] || 0;
-          const p = totalSiswa > 0 ? (c/totalSiswa*100) : 0;
-          const colors = ['from-purple-500 to-purple-600','from-blue-500 to-blue-600','from-green-500 to-green-600','from-amber-500 to-amber-600','from-rose-500 to-rose-600'];
-          return `
-            <div>
-              <div class="flex justify-between mb-1.5">
-                <span class="text-[11px] font-semibold text-slate-700">${l}</span>
-                <span class="text-[11px] font-bold text-purple-600">${c}</span>
-              </div>
-              <div class="w-full bg-slate-100 rounded-full h-2">
-                <div class="bg-gradient-to-r ${colors[i]} rounded-full h-2 transition-all duration-500" style="width: ${p}%"></div>
-              </div>
-            </div>
-          `;
-        }).join('')}
-      </div>
-    </div>
-
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
       <h3 class="text-sm font-bold text-slate-900 mb-4">🏆 Peringkat Siswa</h3>
       <div class="space-y-2">
@@ -1391,59 +1280,52 @@ function renderDashboard() {
               ${renderAvatar(s, 'md')}
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-slate-800 truncate">${esc(s.nama_siswa)}</p>
-                <p class="text-[10px] text-slate-400">${s.count}/28 pertemuan</p>
+                <p class="text-[10px] text-slate-400">${s.count}/${totalPertemuan} pertemuan</p>
               </div>
               <div class="text-right shrink-0">
-                <p class="text-xs font-bold text-purple-600">${s.totalSkor}<span class="text-slate-400 font-normal">/168</span></p>
+                <p class="text-xs font-bold text-purple-600">${s.totalSkor}<span class="text-slate-400 font-normal">/${totalPertemuan*8}</span></p>
                 <p class="text-[10px] text-slate-400">${s.persen}%</p>
               </div>
-            </div>
-          `;
+            </div>`;
         }).join('')}
       </div>
-    </div>
-  `;
+    </div>`;
 }
 
 // ============================================================
-// ORTU - ASESMEN
+// ASESMEN AWAL
 // ============================================================
 function renderAsesmenForm() {
   const form = document.getElementById("form-10-soal");
   if (!form) return;
-
   const questions = [
-    { q: "🧩 Hitung Kancing", t: "Ada 8 bulatan kancing di balok. Anak bisa menyebutkannya dengan...", opts: ["Belum Tahu", "Masih keliru", "Benar tapi ragu", "Cepat & tepat! 🎉"] },
-    { q: "🔴🔵 Pola Warna", t: "Susunan: Merah - Biru - Merah. Selanjutnya adalah...", opts: ["Belum Tahu", "Warna acak", "Tahu tapi terbalik", "Biru 🔵"] },
-    { q: "📦 Bentuk 3D", t: "Membuat balok berdiri tinggi dan kokoh seperti gedung...", opts: ["Belum Tahu", "Hanya datar", "Gampang miring", "Tegap 3D! 🏗️"] },
-    { q: "🧱 Teknik Mengunci", t: "Agar dinding balok tidak mudah roboh, menggunakan teknik...", opts: ["Belum Tahu", "Ditumpuk lurus", "Zig-zag longgar", "Zig-zag bata! 🧱"] },
-    { q: "🚗 Jalan Landai", t: "Mendorong mobil lewat papan miring terasa lebih ringan karena...", opts: ["Belum Tahu", "Belum mengerti", "Tahu tapi ragu", "Hemat tenaga! 💡"] },
-    { q: "⚖️ Jungkat-Jungkit", t: "Menggeser titik tengah jungkat-jungkit agar beban terangkat...", opts: ["Belum Tahu", "Di ujung", "Di tengah", "Dekat beban! ⚖️"] },
-    { q: "🛞 Roda Mobil", t: "Saat memasang roda pada poros, putarannya harus...", opts: ["Belum Tahu", "Macet", "Goyang", "Lancar! 🏎️"] },
-    { q: "💡 Lampu Senter", t: "Jika satu lampu seri dicopot, lampu lain akan...", opts: ["Belum Tahu", "Bingung", "Lupa alasan", "Arus putus! ⚡"] },
-    { q: "🤖 Urutan Robot", t: "Menyusun balok instruksi perintah langkah robot...", opts: ["Belum Tahu", "Acak", "Tertukar", "Runtut! 💻"] },
-    { q: "🔄 Looping", t: "Fungsi kotak lingkaran pengulangan (Loop) pada robot...", opts: ["Belum Tahu", "Belum tahu", "Putar terus", "Hemat kode! 🔄"] }
+    { q: "🤖 Minat pada Robot", t: "Saat melihat robot/mainan bergerak, anak...", opts: ["Tidak tertarik", "Fokus sebentar", "Antusias mengamati", "Sangat antusias & bertanya"] },
+    { q: "👆 Eksplorasi Aktif", t: "Anak mencoba menekan tombol/menggerakkan mainan robot...", opts: ["Tidak mau", "Perlu dibantu", "Mau mencoba", "Mandiri & berulang"] },
+    { q: "🔢 Mengenal Bagian Robot", t: "Anak mampu menunjuk bagian robot (otak, saraf, tubuh)...", opts: ["Belum bisa", "1 bagian", "2 bagian", "3 bagian lengkap"] },
+    { q: "🪜 Bidang Miring", t: "Saat bermain papan miring & mobil, anak...", opts: ["Tidak tertarik", "Mendorong asal", "Mencoba membandingkan", "Paham konsep hemat tenaga"] },
+    { q: "⚖️ Tuas / Jungkat-jungkit", t: "Saat bermain jungkat-jungkit, anak...", opts: ["Tidak mau", "Duduk saja", "Mencoba naik-turun", "Paham posisi titik tumpu"] },
+    { q: "🎡 Katrol", t: "Saat melihat tiang bendera/timba, anak...", opts: ["Tidak peduli", "Melihat sebentar", "Tertarik mencoba", "Paham cara kerja"] },
+    { q: "🛞 Roda Berporos", t: "Saat memutar roda mainan, anak...", opts: ["Tidak tertarik", "Memutar asal", "Mengamati poros", "Paham roda & poros"] },
+    { q: "⚡ Elektronika Sederhana", t: "Saat lampu LED menyala dari baterai, anak...", opts: ["Tidak peduli", "Kaget sebentar", "Senang & mencoba lagi", "Bertanya cara kerjanya"] },
+    { q: "🔗 Urutan (Sequence)", t: "Anak mampu mengikuti 2-3 perintah berurutan...", opts: ["Belum bisa", "1 langkah", "2 langkah", "3+ langkah"] },
+    { q: "💡 Logika Jika-Maka", t: "Anak memahami 'Jika hujan, maka pakai payung'...", opts: ["Belum paham", "Bingung", "Mulai paham", "Paham & bisa contoh lain"] }
   ];
-
   form.innerHTML = questions.map((item, i) => `
     <div class="space-y-2 pb-4 ${i < questions.length - 1 ? 'border-b border-slate-100' : ''}">
-      <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Soal ${i+1}/10 ${item.q}</span>
-      <p class="text-xs font-medium text-slate-800">${esc(item.t)}</p>
-      <div class="grid grid-cols-2 gap-2">
+      <div class="flex items-center space-x-2">
+        <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-[10px] font-bold">${i+1}</span>
+        <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">${item.q}</span>
+      </div>
+      <p class="text-xs font-medium text-slate-800 ml-8">${esc(item.t)}</p>
+      <div class="grid grid-cols-2 gap-2 ml-8">
         ${item.opts.map((o, idx) => `
           <label class="bg-slate-50 border-2 border-slate-100 p-2.5 rounded-xl cursor-pointer flex items-center space-x-2 active:scale-[0.98] transition-all">
             <input type="radio" name="q${i+1}" value="${idx}" ${idx === 0 ? 'required' : ''}>
             <span class="text-[11px] text-slate-700">${esc(o)}</span>
-          </label>
-        `).join('')}
+          </label>`).join('')}
       </div>
-    </div>
-  `).join('') + `
-    <button type="submit" class="w-full gradient-purple text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
-      Selesai & Lihat Rapor 🚀
-    </button>
-  `;
-
+    </div>`).join('') + `
+    <button type="submit" class="w-full gradient-purple text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">Selesai & Lihat Rapor 🚀</button>`;
   form.querySelectorAll('input[type="radio"]').forEach(r => {
     r.addEventListener('change', function() {
       form.querySelectorAll(`input[name="${this.name}"]`).forEach(x => {
@@ -1464,20 +1346,18 @@ async function submitAsesmen10(e) {
   }
   const persen = ((totalSkor / 30) * 100).toFixed(1);
   let rek = "";
-  if (persen < 65) rek = `[Robo Novice V2] (${totalSkor}/30 - ${persen}%). Anak membutuhkan pendampingan intensif pada motorik halus & ketelitian visual.`;
-  else if (persen <= 84) rek = `[Tech Builder V2] (${totalSkor}/30 - ${persen}%). Anak menguasai kompetensi dasar motorik & mekanika dengan baik.`;
-  else rek = `[Code Commander V2] (${totalSkor}/30 - ${persen}%). Anak memiliki logika spasial-komputasional luar biasa.`;
-
+  if (persen < 65) rek = `[Robo Novice] (${totalSkor}/30 - ${persen}%). Anak membutuhkan pendampingan intensif.`;
+  else if (persen <= 84) rek = `[Tech Builder] (${totalSkor}/30 - ${persen}%). Anak menguasai kompetensi dasar dengan baik.`;
+  else rek = `[Code Commander] (${totalSkor}/30 - ${persen}%). Anak memiliki logika luar biasa.`;
   const loading = showLoading("Menyimpan asesmen...");
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
       body: JSON.stringify({ action: "saveAsesmen10", siswaId: currentLoggedInUser.siswa_id, totalSkor, persentase: persen + "%", rekomendasiAi: rek }) });
     await new Promise(r => setTimeout(r, 1200));
-
     const res = await fetch(`${SCRIPT_URL}?action=getAsesmen`).then(r => r.json());
     globalAsesmen = res.data || [];
     loading.close();
-    await showPopup("success", "Tersimpan!", "Asesmen awal anak berhasil dicatat.");
+    await showPopup("success", "Tersimpan!", "Asesmen awal dicatat.");
     renderLaporanAnak();
     showToast("Asesmen tersimpan", "success");
   } catch (err) {
@@ -1488,17 +1368,15 @@ async function submitAsesmen10(e) {
 }
 
 // ============================================================
-// ORTU - RAPOR
+// RAPOR ORANG TUA
 // ============================================================
 function renderLaporanAnak() {
   const container = document.getElementById("laporan-container");
   const headerBox = document.getElementById("ortu-header");
   const asesmenCard = document.getElementById("asesmen-card-wrapper");
   const siswaId = currentLoggedInUser.siswa_id;
-
   const siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
   const asesmenObj = globalAsesmen.find(a => String(a.siswa_id) === String(siswaId));
-
   if (!siswaObj) { container.innerHTML = `<p class="text-xs text-rose-500 text-center">Data tidak ditemukan.</p>`; return; }
 
   const nilaiList = globalNilai.filter(n => String(n.siswa_id) === String(siswaId));
@@ -1508,30 +1386,29 @@ function renderLaporanAnak() {
     if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
   });
   const nilaiUnik = Array.from(um.values());
+  if (asesmenObj) asesmenCard.classList.add("hidden"); else asesmenCard.classList.remove("hidden");
 
-  if (asesmenObj) asesmenCard.classList.add("hidden");
-  else asesmenCard.classList.remove("hidden");
-
-  const levelRanges = {
-    "Level 1": [1, 4, 24], "Level 2": [5, 10, 36], "Level 3": [11, 14, 24],
-    "Level 4": [15, 20, 36], "Level 5": [21, 28, 48]
-  };
-
-  const levelData = Object.entries(levelRanges).map(([key, [min, max, maxSkor]]) => {
+  // Hitung statistik per level dinamis
+  const levelData = globalLevel.map(lv => {
+    const min = parseInt(lv.pertemuan_min), max = parseInt(lv.pertemuan_max);
     const filtered = nilaiUnik.filter(n => parseInt(n.pertemuan) >= min && parseInt(n.pertemuan) <= max);
     const total = filtered.reduce((s, n) => s + getSkor(1, n) + getSkor(2, n), 0);
     const maxP = max - min + 1;
-    return { key, total, max: maxSkor, count: filtered.length, maxP, selesai: filtered.length >= maxP };
+    return {
+      level: lv.level, icon: lv.icon || "📘", warna: lv.warna || "#7c3aed",
+      total, max: maxP * 8, count: filtered.length, maxP,
+      selesai: filtered.length >= maxP
+    };
   });
 
   const grandTotal = levelData.reduce((s, l) => s + l.total, 0);
-  const persenAkhir = ((grandTotal / 168) * 100).toFixed(1);
-  const maxMungkin = ((nilaiUnik.length * 6 / 168) * 100).toFixed(1);
+  const totalMaxSkor = levelData.reduce((s, l) => s + l.max, 0);
+  const persenAkhir = totalMaxSkor > 0 ? ((grandTotal / totalMaxSkor) * 100).toFixed(1) : "0";
 
   let predikat = "", predColor = "", predIcon = "";
-  if (persenAkhir >= 85) { predikat = "Code Commander V2"; predColor = "gradient-green"; predIcon = "🏆"; }
-  else if (persenAkhir >= 65) { predikat = "Tech Builder V2"; predColor = "gradient-blue"; predIcon = "⭐"; }
-  else { predikat = "Robo Novice V2"; predColor = "gradient-orange"; predIcon = "📚"; }
+  if (persenAkhir >= 85) { predikat = "Master Robo"; predColor = "gradient-green"; predIcon = "🏆"; }
+  else if (persenAkhir >= 65) { predikat = "Tech Builder"; predColor = "gradient-blue"; predIcon = "⭐"; }
+  else { predikat = "Robo Novice"; predColor = "gradient-orange"; predIcon = "📚"; }
 
   const activeIdx = levelData.findIndex(l => !l.selesai);
   const activeLevel = activeIdx >= 0 ? activeIdx : levelData.length - 1;
@@ -1541,9 +1418,7 @@ function renderLaporanAnak() {
       <div class="${predColor} p-5 text-white">
         <div class="flex items-center space-x-4 mb-4">
           <div class="relative">
-            <div class="ring-4 ring-white/30 rounded-full">
-              ${renderAvatar(siswaObj, 'xl', 'circle')}
-            </div>
+            <div class="ring-4 ring-white/30 rounded-full">${renderAvatar(siswaObj, 'xl', 'circle')}</div>
             <button onclick="openModalFoto()" class="absolute -bottom-1 -right-1 w-9 h-9 bg-white rounded-full flex items-center justify-center shadow-lg active:scale-95 transition-transform">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#7c3aed" stroke-width="2.5" stroke-linecap="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z"/><circle cx="12" cy="13" r="4"/></svg>
             </button>
@@ -1551,19 +1426,17 @@ function renderLaporanAnak() {
           <div class="flex-1 min-w-0">
             <h2 class="text-lg font-bold truncate">${esc(siswaObj.nama_siswa)}</h2>
             <p class="text-xs text-white/80">${esc(siswaObj.siswa_id)} • ${siswaObj.usia} tahun</p>
-            ${siswaObj.foto_url ? '<p class="text-[9px] text-white/60 mt-1">📷 Foto profil aktif</p>' : '<p class="text-[9px] text-white/60 mt-1">Ketuk ikon kamera untuk tambah foto</p>'}
           </div>
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
             <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Progress</p>
             <p class="text-2xl font-bold mt-0.5">${persenAkhir}%</p>
-            <p class="text-[9px] text-white/60">${nilaiUnik.length}/28 pertemuan</p>
+            <p class="text-[9px] text-white/60">${nilaiUnik.length}/${globalSilabus.length} pertemuan</p>
           </div>
           <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
             <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Total Skor</p>
-            <p class="text-2xl font-bold mt-0.5">${grandTotal}<span class="text-sm font-normal text-white/70">/168</span></p>
-            <p class="text-[9px] text-white/60">poin perolehan</p>
+            <p class="text-2xl font-bold mt-0.5">${grandTotal}<span class="text-sm font-normal text-white/70">/${totalMaxSkor}</span></p>
           </div>
         </div>
       </div>
@@ -1574,35 +1447,20 @@ function renderLaporanAnak() {
         </div>
         <div class="flex justify-between text-xs">
           <span class="text-slate-500">Level Aktif</span>
-          <span class="font-bold text-purple-600">${levelData[activeLevel].key}</span>
+          <span class="font-bold text-purple-600">${levelData[activeLevel] ? levelData[activeLevel].level : "-"}</span>
         </div>
         <div class="flex justify-between text-xs">
           <span class="text-slate-500">Wali</span>
           <span class="font-medium text-slate-700">${esc(siswaObj.orang_tua)}</span>
         </div>
       </div>
-    </div>
-
-    <div class="bg-blue-50 border border-blue-200 p-4 rounded-2xl mt-3">
-      <div class="flex items-start space-x-2">
-        <span class="text-lg shrink-0">💡</span>
-        <div>
-          <p class="text-[11px] text-blue-800 font-bold mb-1">Apa arti "Progress ${persenAkhir}%"?</p>
-          <p class="text-[11px] text-blue-700 leading-relaxed">
-            Ini menunjukkan <span class="font-bold">seberapa jauh anak dari target 100%</span> di 28 pertemuan.
-            Saat ini anak sudah menyelesaikan <span class="font-bold">${nilaiUnik.length} pertemuan</span>.
-            Nilai akan terus naik setiap kali guru menilai pertemuan baru. Maksimal saat ini: <span class="font-bold">${maxMungkin}%</span>.
-          </p>
-        </div>
-      </div>
-    </div>
-  `;
+    </div>`;
 
   container.innerHTML = `
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-slate-900">🎯 Progress Per Level</h3>
-        <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">${activeLevel + 1}/5</span>
+        <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">${activeLevel + 1}/${levelData.length}</span>
       </div>
       <div class="space-y-4">
         ${levelData.map((lv, idx) => {
@@ -1613,9 +1471,9 @@ function renderLaporanAnak() {
               <div class="flex items-center justify-between mb-1.5">
                 <div class="flex items-center space-x-2">
                   <span class="w-7 h-7 ${done ? 'bg-emerald-100 text-emerald-600' : act ? 'bg-purple-100 text-purple-600' : 'bg-slate-100 text-slate-400'} rounded-lg flex items-center justify-center text-[11px] font-bold">
-                    ${done ? '✓' : idx + 1}
+                    ${done ? '✓' : lv.icon}
                   </span>
-                  <span class="text-xs font-bold ${act ? 'text-purple-700' : 'text-slate-700'}">${lv.key}</span>
+                  <span class="text-xs font-bold ${act ? 'text-purple-700' : 'text-slate-700'}">${esc(lv.level)}</span>
                 </div>
                 <span class="text-[10px] font-bold ${done ? 'text-emerald-600' : 'text-slate-500'}">${lv.total}/${lv.max}</span>
               </div>
@@ -1623,8 +1481,7 @@ function renderLaporanAnak() {
                 <div class="${done ? 'bg-emerald-500' : 'gradient-purple'} rounded-full h-2 transition-all duration-500" style="width: ${p}%"></div>
               </div>
               <p class="text-[9px] text-slate-400 ml-9">${lv.count}/${lv.maxP} pertemuan</p>
-            </div>
-          `;
+            </div>`;
         }).join('')}
       </div>
     </div>
@@ -1640,8 +1497,7 @@ function renderLaporanAnak() {
           <span class="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-bold">${asesmenObj.persentase}</span>
         </div>
         <p class="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl">${esc(asesmenObj.rekomendasi_ai)}</p>
-      </div>
-    ` : ''}
+      </div>` : ''}
 
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
       <h3 class="text-sm font-bold text-slate-900 mb-4">📈 Grafik Kemajuan</h3>
@@ -1656,7 +1512,7 @@ function renderLaporanAnak() {
       <div class="space-y-2.5 max-h-96 overflow-y-auto">
         ${nilaiUnik.length > 0 ? nilaiUnik.sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan)).map(n => {
           const s1 = getSkor(1, n), s2 = getSkor(2, n), total = s1 + s2;
-          const warna = total >= 5 ? 'text-emerald-600 bg-emerald-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+          const warna = total >= 7 ? 'text-emerald-600 bg-emerald-50' : total >= 5 ? 'text-blue-600 bg-blue-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
           return `
             <div class="p-3.5 bg-slate-50 rounded-2xl">
               <div class="flex justify-between items-start mb-2">
@@ -1664,25 +1520,22 @@ function renderLaporanAnak() {
                   <p class="text-xs font-bold text-slate-800">Pertemuan ${n.pertemuan}</p>
                   <p class="text-[10px] text-slate-400">${fmtTanggal(n.timestamp)}</p>
                 </div>
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg ${warna}">${total}/6</span>
+                <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg ${warna}">${total}/8</span>
               </div>
               <div class="space-y-1">
                 <div class="flex justify-between text-[10px]">
                   <span class="text-slate-500 truncate pr-2">${esc(getNama(1, n))}</span>
-                  <span class="font-bold text-purple-600 shrink-0">${s1}/3</span>
+                  <span class="font-bold text-purple-600 shrink-0">${s1}/4</span>
                 </div>
                 <div class="flex justify-between text-[10px]">
                   <span class="text-slate-500 truncate pr-2">${esc(getNama(2, n))}</span>
-                  <span class="font-bold text-purple-600 shrink-0">${s2}/3</span>
+                  <span class="font-bold text-purple-600 shrink-0">${s2}/4</span>
                 </div>
               </div>
-            </div>
-          `;
+            </div>`;
         }).join('') : `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada nilai.</p>`}
       </div>
-    </div>
-  `;
-
+    </div>`;
   renderChart(nilaiUnik);
 }
 
@@ -1691,33 +1544,26 @@ function renderChart(nilaiList) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (myChartInstance) myChartInstance.destroy();
-
   const sorted = [...nilaiList].sort((a, b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
   const labels = sorted.map(n => `P${n.pertemuan}`);
   const data = sorted.map(n => getSkor(1, n) + getSkor(2, n));
-
   myChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
       labels: labels.length > 0 ? labels : ['—'],
       datasets: [{
         data: data.length > 0 ? data : [0],
-        borderColor: '#7c3aed',
-        backgroundColor: 'rgba(124, 58, 237, 0.12)',
-        borderWidth: 3,
-        pointBackgroundColor: '#7c3aed',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
-        pointRadius: 4,
-        fill: true,
-        tension: 0.4
+        borderColor: '#7c3aed', backgroundColor: 'rgba(124, 58, 237, 0.12)',
+        borderWidth: 3, pointBackgroundColor: '#7c3aed',
+        pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4,
+        fill: true, tension: 0.4
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
       plugins: { legend: { display: false } },
       scales: {
-        y: { min: 0, max: 6, ticks: { stepSize: 2, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+        y: { min: 0, max: 8, ticks: { stepSize: 2, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
         x: { grid: { display: false }, ticks: { font: { size: 10 } } }
       }
     }
@@ -1728,8 +1574,7 @@ function renderChart(nilaiList) {
 // FOTO UPLOAD
 // ============================================================
 function openModalFoto() {
-  pendingFotoBase64 = null;
-  pendingFotoMime = null;
+  pendingFotoBase64 = null; pendingFotoMime = null;
   document.getElementById("foto-preview-img").classList.add("hidden");
   document.getElementById("foto-preview-placeholder").classList.remove("hidden");
   document.getElementById("foto-input").value = "";
@@ -1740,16 +1585,8 @@ function closeModalFoto() { document.getElementById("modal-foto").classList.add(
 async function previewFoto(e) {
   const file = e.target.files[0];
   if (!file) return;
-
-  if (file.size > 5 * 1024 * 1024) {
-    await showPopup("warning", "Ukuran Terlalu Besar", "Maksimal ukuran foto adalah 5 MB. Silakan pilih foto lain.");
-    return;
-  }
-  if (!file.type.startsWith("image/")) {
-    await showPopup("warning", "Format Tidak Didukung", "Pilih file gambar (JPG, PNG, atau WEBP).");
-    return;
-  }
-
+  if (file.size > 5 * 1024 * 1024) { await showPopup("warning", "Ukuran Terlalu Besar", "Maksimal 5 MB."); return; }
+  if (!file.type.startsWith("image/")) { await showPopup("warning", "Format Tidak Didukung", "Pilih file gambar."); return; }
   const reader = new FileReader();
   reader.onload = function(ev) {
     pendingFotoBase64 = ev.target.result;
@@ -1763,38 +1600,365 @@ async function previewFoto(e) {
 }
 
 async function uploadFoto() {
-  if (!pendingFotoBase64) {
-    await showPopup("warning", "Foto Belum Dipilih", "Silakan pilih foto terlebih dahulu sebelum menyimpan.");
-    return;
-  }
-
+  if (!pendingFotoBase64) { await showPopup("warning", "Foto Belum Dipilih", "Pilih foto dulu ya."); return; }
   const loading = showLoading("Mengunggah foto...");
-
   const payload = {
-    action: "uploadFoto",
-    siswaId: currentLoggedInUser.siswa_id,
-    base64: pendingFotoBase64,
-    mimeType: pendingFotoMime,
+    action: "uploadFoto", siswaId: currentLoggedInUser.siswa_id,
+    base64: pendingFotoBase64, mimeType: pendingFotoMime,
     fileName: "foto_" + currentLoggedInUser.siswa_id + "_" + Date.now() + ".jpg"
   };
-
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     loading.update("Menyimpan ke database...");
     await new Promise(r => setTimeout(r, 1500));
     loading.close();
-
-    await showPopup("success", "Foto Terupload! 🎉", "Foto profil anak berhasil disimpan. Foto akan muncul di semua halaman.");
+    await showPopup("success", "Foto Terupload! 🎉", "Foto profil anak berhasil disimpan.");
     closeModalFoto();
     await fetchDatabaseData();
     renderLaporanAnak();
     showToast("Foto diperbarui", "success");
   } catch (err) {
     loading.close();
-    await showPopup("error", "Upload Gagal", "Terjadi kesalahan saat mengunggah foto. Coba lagi ya.");
+    await showPopup("error", "Upload Gagal", "Terjadi kesalahan.");
     console.error(err);
   }
 }
+
+// ============================================================
+// SERTIFIKAT PER LEVEL
+// ============================================================
+async function loadSertifikatList() {
+  const siswaId = currentLoggedInUser.siswa_id;
+  if (!siswaId) return;
+  const listEl = document.getElementById("sertifikat-list-level");
+  const containerEl = document.getElementById("sertifikat-container");
+  containerEl.classList.add("hidden");
+  containerEl.innerHTML = "";
+
+  // Hitung status tiap level dari data lokal (globalNilai + globalLevel)
+  const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(siswaId));
+  const um = new Map();
+  nilaiSiswa.forEach(n => {
+    const k = String(n.pertemuan);
+    if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
+  });
+  const pertemuanDinilai = new Set(Array.from(um.keys()));
+
+  const statusLevel = globalLevel.map(lv => {
+    const min = parseInt(lv.pertemuan_min), max = parseInt(lv.pertemuan_max);
+    let selesai = 0, total = max - min + 1;
+    for (let p = min; p <= max; p++) {
+      if (pertemuanDinilai.has(p)) selesai++;
+    }
+    return {
+      nama: lv.level, icon: lv.icon || "📘", warna: lv.warna || "#7c3aed",
+      deskripsi: lv.deskripsi || "", min, max,
+      selesai, total,
+      persen: total > 0 ? ((selesai / total) * 100).toFixed(0) : 0,
+      tersedia: selesai >= total
+    };
+  });
+
+  listEl.innerHTML = statusLevel.map(sl => `
+    <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft ${sl.tersedia ? '' : 'opacity-70'}">
+      <div class="flex items-center space-x-3 mb-3">
+        <div class="w-12 h-12 rounded-2xl flex items-center justify-center text-2xl shrink-0" style="background: ${sl.warna}20; color: ${sl.warna};">
+          ${sl.tersedia ? sl.icon : '🔒'}
+        </div>
+        <div class="flex-1 min-w-0">
+          <p class="text-sm font-bold text-slate-800 truncate">${esc(sl.nama)}</p>
+          <p class="text-[10px] text-slate-500">Pertemuan ${sl.min}-${sl.max} • ${sl.deskripsi}</p>
+        </div>
+      </div>
+      <div class="space-y-2 mb-3">
+        <div class="flex justify-between text-[10px]">
+          <span class="text-slate-500">Progress</span>
+          <span class="font-bold" style="color: ${sl.warna};">${sl.selesai}/${sl.total}</span>
+        </div>
+        <div class="w-full bg-slate-100 rounded-full h-2">
+          <div class="rounded-full h-2 transition-all" style="width: ${sl.persen}%; background: ${sl.warna};"></div>
+        </div>
+      </div>
+      ${sl.tersedia
+        ? `<button onclick="lihatSertifikatLevel('${esc(sl.nama)}')" class="w-full text-white font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-xs" style="background: ${sl.warna}; box-shadow: 0 8px 20px -4px ${sl.warna}60;">
+            🎓 Lihat & Download Sertifikat
+          </button>`
+        : `<div class="bg-slate-50 text-slate-500 text-center text-[11px] font-semibold py-3 rounded-2xl">
+            Selesaikan ${sl.total - sl.selesai} pertemuan lagi untuk membuka
+          </div>`}
+    </div>`).join('');
+}
+
+async function lihatSertifikatLevel(namaLevel) {
+  const containerEl = document.getElementById("sertifikat-container");
+  const loading = showLoading("Memuat sertifikat...");
+  try {
+    const res = await fetch(`${SCRIPT_URL}?action=getSertifikat&siswaId=${currentLoggedInUser.siswa_id}&level=${encodeURIComponent(namaLevel)}`).then(r => r.json());
+    loading.close();
+    if (res.status !== "success" || !res.data) {
+      await showPopup("error", "Gagal", res.message || "Tidak dapat memuat sertifikat.");
+      return;
+    }
+    sertifikatData = res.data;
+    containerEl.classList.remove("hidden");
+    await renderSertifikat(res.data);
+    containerEl.scrollIntoView({ behavior: "smooth", block: "start" });
+  } catch (err) {
+    loading.close();
+    console.error(err);
+    await showPopup("error", "Gagal", "Terjadi kesalahan memuat sertifikat.");
+  }
+}
+
+async function generateQRCode(text) {
+  try {
+    const canvas = document.createElement("canvas");
+    await QRCode.toCanvas(canvas, text, {
+      width: 300, margin: 1,
+      color: { dark: "#0f172a", light: "#ffffff" },
+      errorCorrectionLevel: "H"
+    });
+    return canvas.toDataURL("image/png");
+  } catch (err) {
+    console.error("QR Error:", err);
+    return "";
+  }
+}
+
+async function renderSertifikat(data) {
+  const container = document.getElementById("sertifikat-container");
+  const s = data.siswa;
+  const lv = data.level;
+  const predikatColor = data.predikatColor;
+  const certNo = `RC-${lv.nama.replace(/\s+/g, '').substring(0,6).toUpperCase()}-${s.id}-${new Date().getFullYear()}`;
+  const verifyUrl = `${SCRIPT_URL}?action=getSertifikat&siswaId=${s.id}&level=${encodeURIComponent(lv.nama)}`;
+
+  const qrDataUrl = await generateQRCode(verifyUrl);
+  const fotoUrl = s.foto_url || "";
+  const fotoHtml = fotoUrl
+    ? `<img src="${esc(fotoUrl)}" alt="Foto" style="width: 30mm; height: 30mm; border-radius: 50%; object-fit: cover; border: 1.5mm solid ${predikatColor}; box-shadow: 0 4px 12px ${predikatColor}40;" onerror="this.style.display='none'">`
+    : `<div style="width: 30mm; height: 30mm; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; font-size: 12mm; color: white; font-weight: 900; border: 1.5mm solid ${predikatColor}; box-shadow: 0 4px 12px ${predikatColor}40;">${esc(s.nama).charAt(0).toUpperCase()}</div>`;
+
+  // HALAMAN 1: SERTIFIKAT UTAMA
+  const page1 = `
+    <div class="sertifikat-page">
+      <div class="cert-border-outer" style="border-color: ${lv.warna};"></div>
+      <div class="cert-border-inner" style="border-color: ${lv.warna};"></div>
+      <div class="cert-corner tl" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner tr" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner bl" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner br" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-watermark">${lv.icon}</div>
+
+      <div style="position: absolute; inset: 20mm; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center;">
+        <div style="width: 100%;">
+          <div style="display: flex; align-items: center; justify-content: center; gap: 4mm; margin-bottom: 2mm;">
+            <div style="width: 16mm; height: 16mm; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-radius: 4mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 9mm; box-shadow: 0 4px 12px ${lv.warna}60;">🤖</div>
+            <div style="text-align: left;">
+              <div style="font-size: 6mm; font-weight: 900; color: ${lv.warna}; letter-spacing: 1px;">RoboClass</div>
+              <div style="font-size: 2.5mm; color: #64748b; font-weight: 600; letter-spacing: 2px;">ROBOTIC CLASS MANAGEMENT</div>
+            </div>
+          </div>
+          <div style="width: 60mm; height: 1mm; background: linear-gradient(90deg, transparent, ${predikatColor}, transparent); margin: 0 auto;"></div>
+        </div>
+
+        <div style="margin: 1mm 0;">${fotoHtml}</div>
+
+        <div style="margin: 1mm 0;">
+          <div style="font-size: 5mm; color: #64748b; letter-spacing: 6px; font-weight: 600;">SERTIFIKAT</div>
+          <div style="font-size: 13mm; font-weight: 900; color: #0f172a; letter-spacing: 4px; line-height: 1; margin-top: 1mm;">KELULUSAN</div>
+          <div style="font-size: 3mm; color: #94a3b8; letter-spacing: 4px; margin-top: 1mm;">CERTIFICATE OF COMPLETION</div>
+        </div>
+
+        <div style="width: 100%;">
+          <div style="font-size: 3mm; color: #64748b; margin-bottom: 1mm;">Diberikan dengan bangga kepada:</div>
+          <div style="font-size: 11mm; font-weight: 900; color: ${predikatColor}; letter-spacing: 1px; line-height: 1.1; margin-bottom: 1mm;">${esc(s.nama)}</div>
+          <div style="width: 100mm; height: 0.5mm; background: linear-gradient(90deg, transparent, ${predikatColor}, transparent); margin: 0 auto 1mm;"></div>
+          <div style="font-size: 2.8mm; color: #64748b;">ID: ${esc(s.id)} • Usia: ${s.usia} tahun • Wali: ${esc(s.orangTua)}</div>
+        </div>
+
+        <div style="max-width: 200mm; margin: 1mm 0;">
+          <div style="font-size: 3.2mm; color: #475569; line-height: 1.6;">
+            telah berhasil menyelesaikan <b style="color: ${lv.warna};">${lv.nama}</b>
+            (Pertemuan ${lv.min}-${lv.max}) program <b style="color: ${lv.warna};">Basic Robotics</b> dengan predikat
+          </div>
+          <div style="margin: 2mm 0;">
+            <span style="display: inline-block; padding: 1.5mm 6mm; background: ${predikatColor}; color: white; border-radius: 3mm; font-size: 5mm; font-weight: 900; letter-spacing: 2px; box-shadow: 0 4px 12px ${predikatColor}40;">
+              ${data.predikatIcon} ${data.predikat}
+            </span>
+          </div>
+          <div style="font-size: 3.2mm; color: #475569;">
+            dengan total perolehan nilai <b style="color: ${lv.warna};">${data.grandTotal}/${data.skorMaksimalLevel}</b> (${data.persenAkhir}%)
+          </div>
+        </div>
+
+        <div style="width: 100%; display: flex; align-items: flex-end; justify-content: space-between; margin-top: 1mm; gap: 4mm;">
+          <div style="text-align: center; flex: 1;">
+            <div style="font-size: 2.8mm; color: #64748b; margin-bottom: 1mm;">Tanggal Kelulusan</div>
+            <div style="font-size: 3.5mm; font-weight: 700; color: #0f172a;">${data.tanggalCetak}</div>
+            <div style="margin-top: 2mm; font-size: 2.5mm; color: #94a3b8;">No: ${certNo}</div>
+          </div>
+
+          <div class="cert-seal" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-color: rgba(255,255,255,0.6); color: white;">
+            ${lv.icon}<br><span style="font-size: 2.2mm; margin-top: 1mm;">ROBOCLASS</span>
+          </div>
+
+          <div style="text-align: center; flex: 1;">
+            <div style="font-size: 3.5mm; font-weight: 700; color: #0f172a; border-bottom: 0.5mm solid #0f172a; padding-bottom: 1mm; min-width: 45mm;">Arni Irenawati, S.Si</div>
+            <div style="font-size: 2.8mm; color: #64748b; margin-top: 1mm;">Kepala Program RoboClass</div>
+          </div>
+
+          <div style="text-align: center; flex: 0.6;">
+            <img src="${qrDataUrl}" alt="QR" style="width: 22mm; height: 22mm; border: 0.5mm solid #e2e8f0; padding: 1mm; background: white; border-radius: 2mm;">
+            <div style="font-size: 2mm; color: #94a3b8; margin-top: 1mm;">Scan untuk verifikasi</div>
+          </div>
+        </div>
+
+        <div style="width: 100%; border-top: 0.5mm solid #e2e8f0; padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 2.3mm; color: #94a3b8;">
+          <span>Enjoy Family Club — Activity Center & Playground</span>
+          <span>Dokumen ini sah tanpa tanda tangan basah</span>
+        </div>
+      </div>
+    </div>`;
+
+  // HALAMAN 2: TRANSKRIP + GRAFIK
+  const detailNilai = data.detailNilai;
+  const chartLabels = detailNilai.map(n => `P${n.pertemuan}`);
+  const chartData = detailNilai.map(n => n.total);
+
+  const page2 = `
+    <div class="sertifikat-page">
+      <div class="cert-border-outer" style="border-color: ${lv.warna};"></div>
+      <div class="cert-border-inner" style="border-color: ${lv.warna};"></div>
+      <div class="cert-corner tl" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner tr" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner bl" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+      <div class="cert-corner br" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
+
+      <div style="position: absolute; inset: 16mm; display: flex; flex-direction: column;">
+
+        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1mm solid ${predikatColor}; padding-bottom: 2.5mm; margin-bottom: 3mm;">
+          <div style="display: flex; align-items: center; gap: 3mm;">
+            <div style="width: 12mm; height: 12mm; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-radius: 3mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 6mm;">${lv.icon}</div>
+            <div>
+              <div style="font-size: 4.5mm; font-weight: 900; color: ${lv.warna};">TRANSKRIP NILAI</div>
+              <div style="font-size: 2.5mm; color: #64748b;">${lv.nama} • Pertemuan ${lv.min}-${lv.max}</div>
+            </div>
+          </div>
+          <div style="text-align: right;">
+            <div style="font-size: 3.5mm; font-weight: 900; color: #0f172a;">${esc(s.nama)}</div>
+            <div style="font-size: 2.5mm; color: #64748b;">ID: ${esc(s.id)} • ${data.tanggalCetak}</div>
+          </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; flex: 1; overflow: hidden;">
+          <!-- KIRI: GRAFIK -->
+          <div style="display: flex; flex-direction: column;">
+            <div style="font-size: 3mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.5mm solid #e2e8f0;">📈 GRAFIK PERKEMBANGAN</div>
+            <div style="background: #fafafe; border: 0.5mm solid #e2e8f0; border-radius: 2mm; padding: 2mm; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 80mm;">
+              <canvas id="sertChart" style="max-width: 100%; max-height: 80mm;"></canvas>
+            </div>
+            <div style="margin-top: 2mm; background: linear-gradient(135deg, ${predikatColor}15, ${predikatColor}05); border-left: 1mm solid ${predikatColor}; padding: 2mm; border-radius: 1mm;">
+              <div style="font-size: 2.5mm; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Perolehan</div>
+              <div style="font-size: 6mm; font-weight: 900; color: ${predikatColor};">${data.grandTotal}<span style="font-size: 3mm; color: #94a3b8;">/${data.skorMaksimalLevel}</span> <span style="font-size: 3mm; color: #64748b;">(${data.persenAkhir}%)</span></div>
+            </div>
+          </div>
+
+          <!-- KANAN: TABEL -->
+          <div style="display: flex; flex-direction: column; overflow: hidden;">
+            <div style="font-size: 3mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.5mm solid #e2e8f0;">📋 RINCIAN NILAI</div>
+            <div style="overflow-y: auto; flex: 1;">
+              <table style="width: 100%; border-collapse: collapse; font-size: 2.4mm;">
+                <thead>
+                  <tr style="background: #f1f5f9;">
+                    <th style="padding: 1.5mm; text-align: center; color: #475569; font-weight: 700; width: 12%;">P</th>
+                    <th style="padding: 1.5mm; text-align: left; color: #475569; font-weight: 700;">Materi</th>
+                    <th style="padding: 1.5mm; text-align: center; color: #475569; font-weight: 700; width: 15%;">Skor</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${detailNilai.map(n => `
+                    <tr style="border-bottom: 0.2mm solid #e2e8f0;">
+                      <td style="padding: 1.2mm; text-align: center; font-weight: 700; color: ${lv.warna};">${n.pertemuan}</td>
+                      <td style="padding: 1.2mm; color: #334155;">${esc(n.judul)}</td>
+                      <td style="padding: 1.2mm; text-align: center; font-weight: 700; color: ${n.total >= 7 ? '#10b981' : n.total >= 5 ? '#3b82f6' : n.total >= 3 ? '#f59e0b' : '#f43f5e'};">${n.total}/8</td>
+                    </tr>`).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div style="margin-top: 2mm; background: #f8fafc; border-radius: 1mm; padding: 2mm; display: flex; justify-content: space-between; font-size: 2.5mm; color: #475569;">
+              <span>Rata-rata per pertemuan</span>
+              <span style="font-weight: 900; color: ${lv.warna};">${detailNilai.length > 0 ? (data.grandTotal/detailNilai.length).toFixed(1) : 0}/8</span>
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top: 2mm; border-top: 0.5mm solid #e2e8f0; padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 2.2mm; color: #94a3b8;">
+          <span>${data.totalPertemuan}/${data.totalPertemuanLevel} pertemuan • Total: <b style="color: ${lv.warna};">${data.grandTotal}/${data.skorMaksimalLevel}</b> (${data.persenAkhir}%)</span>
+          <span>Sertifikat No: ${certNo}</span>
+        </div>
+      </div>
+    </div>`;
+
+  container.innerHTML = `
+    <div class="flex items-center justify-between no-print mb-3">
+      <h3 class="text-sm font-bold text-slate-900">📄 Preview Sertifikat — ${esc(lv.nama)}</h3>
+      <button onclick="downloadSertifikat()" class="gradient-purple text-white px-4 py-2.5 rounded-2xl shadow-lg shadow-purple-200 active:scale-95 transition-all flex items-center space-x-2 text-xs font-bold">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
+        <span>Download PDF</span>
+      </button>
+    </div>
+    ${page1}${page2}`;
+
+  setTimeout(() => {
+    const canvas = document.getElementById("sertChart");
+    if (canvas && chartLabels.length > 0) {
+      const ctx = canvas.getContext("2d");
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels: chartLabels,
+          datasets: [{
+            label: 'Skor',
+            data: chartData,
+            borderColor: lv.warna,
+            backgroundColor: lv.warna + '20',
+            borderWidth: 2.5,
+            pointBackgroundColor: lv.warna,
+            pointBorderColor: '#fff',
+            pointBorderWidth: 1.5,
+            pointRadius: 4,
+            fill: true, tension: 0.4
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (c) => `Skor: ${c.parsed.y}/8` } }
+          },
+          scales: {
+            y: { min: 0, max: 8, ticks: { stepSize: 2, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
+          }
+        }
+      });
+    }
+  }, 200);
+}
+
+async function downloadSertifikat() {
+  if (!sertifikatData) { await showPopup("warning", "Data Belum Siap", "Sertifikat belum dimuat."); return; }
+  const ok = await showConfirm(
+    "Cetak Sertifikat 📄",
+    "Pada dialog print, pilih:<br>• Tujuan: <b>Save as PDF</b><br>• Ukuran: <b>A4</b><br>• Orientasi: <b>Landscape</b><br>• Centang <b>Background graphics</b>",
+    "Lanjut Cetak", "Batal"
+  );
+  if (!ok) return;
+  setTimeout(() => window.print(), 300);
+}
+
+console.log("RoboClass Manager loaded");
 </script>
 </body>
 </html>
