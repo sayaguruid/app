@@ -170,25 +170,61 @@ function getSilabusPertemuan(pertemuan, usia) {
 // LOAD DATA
 // ============================================================
 window.onload = function() {
+  // ✅ Percepat splash: 800ms
   setTimeout(() => {
     const splash = document.getElementById("splash");
-    splash.style.transition = "opacity 0.5s";
+    splash.style.transition = "opacity 0.4s";
     splash.style.opacity = "0";
     setTimeout(() => {
       splash.classList.add("hidden");
       document.getElementById("login-wrapper").classList.remove("hidden");
-    }, 500);
-  }, 1800);
+    }, 400);
+  }, 800); // ← dari 1800 → 800
+
+  // ✅ Mulai fetch lebih awal (jangan tunggu splash)
   fetchDatabaseData();
 };
 
 function fetchDatabaseData() {
+  const statusEl = document.getElementById("login-status");
+  if (statusEl) statusEl.innerText = "Memuat data...";
+
+  // ✅ 1 request untuk semua data (lebih cepat)
+  return fetch(`${SCRIPT_URL}?action=getAllData`)
+    .then(r => {
+      if (!r.ok) throw new Error(`HTTP ${r.status}`);
+      return r.json();
+    })
+    .then(res => {
+      if (res.status !== "success") throw new Error(res.message || "Gagal");
+      const d = res.data;
+      globalSiswa   = (d.siswa   || []).map(s => ({...s, siswa_id: String(s.siswa_id || "")}));
+      globalNilai   = d.nilai    || [];
+      globalAkun    = d.akun     || [];
+      globalSilabus = (d.silabus || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+      globalLevel   = (d.level   || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
+
+      if (statusEl) statusEl.innerText = "✅ Sistem siap";
+      populateAdminList();
+      populateLevelDropdown();
+    })
+    .catch(err => {
+      console.error("Fetch error:", err);
+      if (statusEl) statusEl.innerText = "❌ Gagal memuat: " + err.message;
+      // ✅ Fallback: coba pakai cara lama (5 request terpisah)
+      return fetchDatabaseDataFallback();
+    });
+}
+
+// Fallback kalau getAllData belum ada di GAS
+function fetchDatabaseDataFallback() {
+  const statusEl = document.getElementById("login-status");
   return Promise.all([
-    fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getAkun`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json())
+    fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()).catch(() => ({data: []})),
+    fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()).catch(() => ({data: []})),
+    fetch(`${SCRIPT_URL}?action=getAkun`).then(r => r.json()).catch(() => ({data: []})),
+    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()).catch(() => ({data: []})),
+    fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json()).catch(() => ({data: []}))
   ])
   .then(([rS, rN, rAk, rSil, rLv]) => {
     globalSiswa = rS.data || [];
@@ -196,16 +232,15 @@ function fetchDatabaseData() {
     globalAkun = rAk.data || [];
     globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
     globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
-    document.getElementById("login-status").innerText = "✅ Sistem siap";
+    if (statusEl) statusEl.innerText = "✅ Sistem siap (fallback)";
     populateAdminList();
     populateLevelDropdown();
   })
   .catch(err => {
-    document.getElementById("login-status").innerText = "❌ Gagal memuat data";
     console.error(err);
+    if (statusEl) statusEl.innerText = "❌ Gagal memuat data";
   });
 }
-
 function populateLevelDropdown() {
   const sel = document.getElementById("add-level");
   if (!sel) return;
@@ -213,20 +248,34 @@ function populateLevelDropdown() {
 }
 
 function refreshData(callback) {
-  return Promise.all([
-    fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json())
-  ]).then(([rN, rS, rSil, rLv]) => {
-    globalNilai = rN.data || [];
-    globalSiswa = rS.data || [];
-    globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
-    globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
-    if (callback) callback();
-  });
+  return fetch(`${SCRIPT_URL}?action=getAllData`)
+    .then(r => r.json())
+    .then(res => {
+      if (res.status !== "success") throw new Error("Gagal refresh");
+      const d = res.data;
+      globalNilai    = d.nilai    || [];
+      globalSiswa    = d.siswa    || [];
+      globalSilabus  = (d.silabus || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+      globalLevel    = (d.level   || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
+      if (callback) callback();
+    })
+    .catch(err => {
+      console.error("Refresh error:", err);
+      // Fallback
+      return Promise.all([
+        fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()).catch(() => ({data: []})),
+        fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()).catch(() => ({data: []})),
+        fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()).catch(() => ({data: []})),
+        fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json()).catch(() => ({data: []}))
+      ]).then(([rN, rS, rSil, rLv]) => {
+        globalNilai = rN.data || [];
+        globalSiswa = rS.data || [];
+        globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+        globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
+        if (callback) callback();
+      });
+    });
 }
-
 // ============================================================
 // LOGIN / LOGOUT
 // ============================================================
