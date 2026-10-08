@@ -77,7 +77,6 @@
   .toast.fade-out { animation: toastOut 0.3s ease-in forwards; }
   @keyframes toastOut { to { opacity: 0; transform: translate(-50%, -20px); } }
 
-  /* SERTIFIKAT */
   .sertifikat-page {
     width: 297mm; height: 210mm; background: white;
     position: relative; overflow: hidden;
@@ -112,6 +111,9 @@
     overflow-x: auto; overflow-y: hidden;
     padding: 10px 0; -webkit-overflow-scrolling: touch;
   }
+
+  .star-rating { font-size: 1.5rem; letter-spacing: 0.1rem; }
+  .star-display { font-size: 1.25rem; letter-spacing: 0.05rem; }
 
   @media print {
     body { background: white !important; }
@@ -215,6 +217,7 @@
 
   <main class="flex-grow overflow-y-auto pb-28 px-4 pt-5">
     <section id="tab-dashboard" class="tab-content hidden space-y-5"></section>
+
     <section id="tab-admin" class="tab-content hidden space-y-5">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">Kelola Siswa</h2>
@@ -276,7 +279,7 @@
     <section id="tab-guru" class="tab-content hidden space-y-5">
       <div>
         <h2 class="text-2xl font-bold text-slate-900">Penilaian</h2>
-        <p class="text-xs text-slate-500 mt-1">Beri nilai sesuai rubrik silabus (BB/MB/BSH/BSB)</p>
+        <p class="text-xs text-slate-500 mt-1">Beri bintang sesuai indikator perilaku di silabus</p>
       </div>
       <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
         <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Siswa</label>
@@ -290,11 +293,19 @@
       <div id="guru-riwayat" class="hidden"></div>
     </section>
 
+    <section id="tab-dashboard-guru" class="tab-content hidden space-y-5">
+      <div>
+        <h2 class="text-2xl font-bold text-slate-900">Dashboard Pencapaian</h2>
+        <p class="text-xs text-slate-500 mt-1">Pantau capaian bintang setiap siswa</p>
+      </div>
+      <div id="dashboard-guru-content" class="space-y-4"></div>
+    </section>
+
     <section id="tab-silabus" class="tab-content hidden space-y-5">
       <div class="flex items-center justify-between">
         <div>
           <h2 class="text-2xl font-bold text-slate-900">Silabus</h2>
-          <p class="text-xs text-slate-500 mt-1">Kelola kurikulum pertemuan</p>
+          <p class="text-xs text-slate-500 mt-1">Kelola kurikulum pertemuan per usia</p>
         </div>
         <button onclick="openModalSilabusBaru()" class="gradient-purple text-white p-3 rounded-2xl shadow-lg shadow-purple-200 active:scale-95 transition-all">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>
@@ -305,8 +316,8 @@
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20M4 19.5A2.5 2.5 0 016.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z"/></svg>
         </div>
         <div class="flex-1">
-          <p class="text-xs font-bold text-slate-800">Total Pertemuan</p>
-          <p class="text-[10px] text-slate-500">Kurikulum dinamis dari sheet</p>
+          <p class="text-xs font-bold text-slate-800">Total Baris Silabus</p>
+          <p class="text-[10px] text-slate-500">Kombinasi pertemuan × usia</p>
         </div>
         <span id="total-pertemuan" class="text-2xl font-bold text-purple-600">0</span>
       </div>
@@ -317,17 +328,9 @@
 
     <section id="tab-ortu" class="tab-content hidden space-y-5">
       <div id="ortu-header"></div>
-      <div id="asesmen-card-wrapper" class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft space-y-5">
-        <div>
-          <h2 class="text-lg font-bold text-slate-900">✨ Asesmen Awal</h2>
-          <p class="text-xs text-slate-500 mt-1">10 pertanyaan observasi untuk memetakan kemampuan anak</p>
-        </div>
-        <form id="form-10-soal" onsubmit="submitAsesmen10(event)" class="space-y-5"></form>
-      </div>
       <div id="laporan-container" class="space-y-5"></div>
     </section>
 
-    <!-- TAB SERTIFIKAT -->
     <section id="tab-sertifikat" class="tab-content hidden space-y-5">
       <div class="flex items-center justify-between no-print">
         <div>
@@ -396,7 +399,7 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuHX4uIl2CYFOj_ggLUMtGry4twjJXzOObvXvkbnXYc-iea4e1Dd12MesDnjv3FlWfJQ/exec";
 
 // ============================================================
-// POPUP
+// POPUP & TOAST
 // ============================================================
 function showPopup(type, title, message, btnText = "OK") {
   return new Promise((resolve) => {
@@ -481,7 +484,6 @@ function showToast(message, type = "success") {
 // ============================================================
 let globalSiswa = [];
 let globalNilai = [];
-let globalAsesmen = [];
 let globalAkun = [];
 let globalSilabus = [];
 let globalLevel = [];
@@ -498,8 +500,7 @@ let sertifikatData = null;
 // HELPER
 // ============================================================
 function getSkor(param, n) {
-  const val = n[`param${param}_skor`];
-  const num = parseInt(val);
+  const num = parseInt(n[`param${param}_skor`]);
   return isNaN(num) ? 0 : num;
 }
 function getNama(param, n) { return n[`param${param}_nama`] || `Parameter ${param}`; }
@@ -511,6 +512,24 @@ function esc(str) {
 function fmtTanggal(ts) {
   try { return new Date(ts).toLocaleDateString('id-ID', {day:'numeric', month:'short', year:'numeric'}); }
   catch(e) { return "-"; }
+}
+function renderBintang(skor) {
+  const s = Math.max(0, Math.min(5, parseInt(skor) || 0));
+  return "⭐".repeat(s) + "☆".repeat(5 - s);
+}
+function renderBintangHtml(skor) {
+  const s = Math.max(0, Math.min(5, parseInt(skor) || 0));
+  let html = '<span style="color:#f59e0b;font-size:1.1rem;letter-spacing:0.05rem">';
+  for (let i = 1; i <= 5; i++) {
+    html += i <= s ? '★' : '<span style="color:#e2e8f0">★</span>';
+  }
+  html += '</span>';
+  return html;
+}
+function normalisasiUsia(usiaStr) {
+  // "4 Tahun" -> "4", 6 -> "6"
+  const m = String(usiaStr).match(/\d+/);
+  return m ? m[0] : String(usiaStr);
 }
 
 function renderAvatar(siswa, size = 'md', shape = 'rounded') {
@@ -528,6 +547,20 @@ function renderAvatar(siswa, size = 'md', shape = 'rounded') {
     return `<img src="${esc(foto)}" alt="" class="object-cover shrink-0" style="width:${s.w};height:${s.w};border-radius:${radius}" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"><div class="gradient-purple text-white items-center justify-center font-bold shrink-0 ${s.font}" style="width:${s.w};height:${s.w};border-radius:${radius};display:none">${initial}</div>`;
   }
   return `<div class="gradient-purple text-white flex items-center justify-center font-bold shrink-0 ${s.font}" style="width:${s.w};height:${s.w};border-radius:${radius}">${initial}</div>`;
+}
+
+// Filter silabus sesuai usia siswa
+function getSilabusByUsia(usia) {
+  const u = normalisasiUsia(usia);
+  return globalSilabus.filter(s => normalisasiUsia(s.usia) === u);
+}
+
+// Ambil silabus untuk pertemuan tertentu sesuai usia siswa
+function getSilabusPertemuan(pertemuan, usia) {
+  const u = normalisasiUsia(usia);
+  return globalSilabus.find(s =>
+    String(s.pertemuan) === String(pertemuan) && normalisasiUsia(s.usia) === u
+  );
 }
 
 // ============================================================
@@ -550,15 +583,13 @@ function fetchDatabaseData() {
   return Promise.all([
     fetch(`${SCRIPT_URL}?action=getSiswa`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getNilai`).then(r => r.json()),
-    fetch(`${SCRIPT_URL}?action=getAsesmen`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getAkun`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getSilabus`).then(r => r.json()),
     fetch(`${SCRIPT_URL}?action=getLevel`).then(r => r.json())
   ])
-  .then(([rS, rN, rA, rAk, rSil, rLv]) => {
+  .then(([rS, rN, rAk, rSil, rLv]) => {
     globalSiswa = rS.data || [];
     globalNilai = rN.data || [];
-    globalAsesmen = rA.data || [];
     globalAkun = rAk.data || [];
     globalSilabus = (rSil.data || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
     globalLevel = (rLv.data || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
@@ -613,7 +644,7 @@ async function handleLogin(e) {
   if (found.role === "superadmin") { switchTab('dashboard'); renderDashboard(); }
   else if (found.role === "admin") switchTab('admin');
   else if (found.role === "guru") { switchTab('guru'); populateDropdownSiswaGuru(); }
-  else if (found.role === "ortu") { switchTab('ortu'); renderAsesmenForm(); renderLaporanAnak(); }
+  else if (found.role === "ortu") { switchTab('ortu'); renderLaporanAnak(); }
   showToast(`Selamat datang, ${found.nama_pemilik}!`, "success");
 }
 
@@ -639,7 +670,8 @@ function renderBottomNav(role) {
     guru: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
     silabus: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
     ortu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
-    sertifikat: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`
+    sertifikat: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="8" r="6"/><path d="M15.477 12.89L17 22l-5-3-5 3 1.523-9.11"/></svg>`,
+    capaian: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>`
   };
 
   let items = [];
@@ -650,10 +682,12 @@ function renderBottomNav(role) {
   ];
   else if (role === "admin") items = [
     { key: 'admin', icon: icons.admin, label: 'Siswa' },
-    { key: 'dashboard', icon: icons.dashboard, label: 'Dashboard' }
+    { key: 'dashboard', icon: icons.dashboard, label: 'Dashboard' },
+    { key: 'silabus', icon: icons.silabus, label: 'Silabus' }
   ];
   else if (role === "guru") items = [
     { key: 'guru', icon: icons.guru, label: 'Nilai' },
+    { key: 'dashboard-guru', icon: icons.capaian, label: 'Capaian' },
     { key: 'silabus', icon: icons.silabus, label: 'Silabus' }
   ];
   else if (role === "ortu") items = [
@@ -677,6 +711,7 @@ function switchTab(key) {
   if (btn) { btn.classList.add('nav-active'); btn.classList.remove('text-slate-400'); }
   if (key === 'silabus') renderSilabusList();
   if (key === 'dashboard') renderDashboard();
+  if (key === 'dashboard-guru') renderDashboardGuru();
   if (key === 'sertifikat') loadSertifikatList();
 }
 
@@ -732,13 +767,13 @@ async function tambahSiswa(e) {
 }
 
 // ============================================================
-// GURU - PENILAIAN (Skala BB/MB/BSH/BSB)
+// GURU - PENILAIAN (sesuai usia & silabus)
 // ============================================================
 function populateDropdownSiswaGuru() {
   const sel = document.getElementById("guru-pilih-siswa");
   if (!sel) return;
   sel.innerHTML = `<option value="">-- Pilih Siswa --</option>` +
-    globalSiswa.map(s => `<option value="${esc(s.siswa_id)}">${esc(s.nama_siswa)} (${esc(s.siswa_id)})</option>`).join('');
+    globalSiswa.map(s => `<option value="${esc(s.siswa_id)}">${esc(s.nama_siswa)} • ${s.usia} thn (${esc(s.siswa_id)})</option>`).join('');
 }
 
 function onPilihSiswa() {
@@ -758,15 +793,18 @@ function onPilihSiswa() {
   const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
   if (!siswa) return;
 
+  // Filter silabus sesuai usia siswa
+  const silabusUsiaIni = getSilabusByUsia(siswa.usia);
+  const totalSilabusUsia = silabusUsiaIni.length;
+
   const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(selectedSiswaId));
   const um = new Map();
   nilaiSiswa.forEach(n => {
-    const k = String(n.pertemuan);
+    const k = String(n.pertemuan).replace(/\D/g, "");
     if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
   });
   const pertemuanSudahDinilai = new Set(Array.from(um.keys()));
   const totalDinilai = pertemuanSudahDinilai.size;
-  const totalAll = globalSilabus.length;
 
   infoBox.innerHTML = `
     <div class="flex items-center space-x-4">
@@ -774,25 +812,27 @@ function onPilihSiswa() {
       <div class="flex-1 min-w-0">
         <h3 class="text-lg font-bold truncate">${esc(siswa.nama_siswa)}</h3>
         <p class="text-xs text-white/80 mt-1">${esc(siswa.level_saat_ini)}</p>
-        <p class="text-[10px] text-white/60 mt-0.5">ID: ${esc(siswa.siswa_id)}</p>
+        <p class="text-[10px] text-white/60 mt-0.5">ID: ${esc(siswa.siswa_id)} • Usia: ${siswa.usia} tahun</p>
       </div>
     </div>
     <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3 space-y-2">
       <div class="flex justify-between text-xs">
         <span class="text-white/80">Progress Penilaian</span>
-        <span class="font-bold">${totalDinilai}/${totalAll} pertemuan</span>
+        <span class="font-bold">${totalDinilai}/${totalSilabusUsia} pertemuan</span>
       </div>
       <div class="w-full bg-white/20 rounded-full h-2">
-        <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${totalAll > 0 ? (totalDinilai/totalAll)*100 : 0}%"></div>
+        <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${totalSilabusUsia > 0 ? (totalDinilai/totalSilabusUsia)*100 : 0}%"></div>
       </div>
+      <p class="text-[10px] text-white/70">📌 Silabus yang ditampilkan sesuai usia ${siswa.usia} tahun</p>
     </div>`;
   infoBox.classList.remove("hidden");
 
-  const available = globalSilabus.filter(sil => !pertemuanSudahDinilai.has(String(sil.pertemuan)))
+  const available = silabusUsiaIni
+    .filter(sil => !pertemuanSudahDinilai.has(String(sil.pertemuan)))
     .sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
 
   stepPertemuan.innerHTML = `
-    <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Pertemuan</label>
+    <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Pertemuan (Usia ${siswa.usia} Thn)</label>
     <select id="guru-pilih-pertemuan" onchange="onPilihPertemuan()" class="w-full mt-1.5 px-3 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none font-medium">
       ${available.length === 0
         ? `<option value="">🎉 Semua pertemuan sudah dinilai!</option>`
@@ -810,9 +850,10 @@ function onPilihPertemuan() {
   const formBox = document.getElementById("guru-form-penilaian");
   if (!val) { formBox.classList.add("hidden"); formBox.innerHTML = ""; selectedPertemuan = null; return; }
   selectedPertemuan = val;
-  const sil = globalSilabus.find(s => String(s.pertemuan) === String(val));
-  if (!sil) return;
-  const existing = globalNilai.find(n => String(n.siswa_id) === String(selectedSiswaId) && String(n.pertemuan) === String(val));
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
+  const sil = getSilabusPertemuan(val, siswa.usia);
+  if (!sil) { showToast("Silabus untuk usia ini belum ada", "warning"); return; }
+  const existing = globalNilai.find(n => String(n.siswa_id) === String(selectedSiswaId) && String(n.pertemuan).replace(/\D/g,"") === String(val));
   renderFormPenilaian(sil, existing);
   formBox.classList.remove("hidden");
   formBox.classList.add("fade-in");
@@ -823,18 +864,16 @@ function renderFormPenilaian(sil, existing) {
   const isEdit = !!existing;
   const p1Skor = isEdit ? getSkor(1, existing) : 3;
   const p1Cat = isEdit ? getCatatan(1, existing) : '';
-  const p2Skor = isEdit ? getSkor(2, existing) : 3;
-  const p2Cat = isEdit ? getCatatan(2, existing) : '';
 
-  // Skala BB/MB/BSH/BSB
-  const opt = (name, val, label, desc, checked) => {
-    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600' };
+  const opt = (val, label, desc, checked) => {
+    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600', 5: 'text-purple-600' };
+    const bintang = "⭐".repeat(val);
     return `
       <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3.5 rounded-2xl cursor-pointer active:scale-[0.99] transition-all">
         <div class="flex items-start space-x-3">
-          <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-1">
+          <input type="radio" name="p1_skor" value="${val}" ${checked == val ? 'checked' : ''} class="mt-1">
           <div class="flex-1">
-            <span class="text-[10px] font-bold ${colors[val]} uppercase tracking-wider">Skor ${val} - ${label}</span>
+            <span class="text-[10px] font-bold ${colors[val]} uppercase tracking-wider">${bintang} (${val}/5) - ${label}</span>
             <p class="text-[11px] text-slate-600 mt-1 leading-relaxed">${esc(desc)}</p>
           </div>
         </div>
@@ -849,35 +888,29 @@ function renderFormPenilaian(sil, existing) {
           <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">${esc(sil.level)}</span>
         </div>
         <h3 class="text-base font-bold text-slate-900">${esc(sil.judul)}</h3>
-        <p class="text-xs text-slate-500 mt-1">${esc(sil.praktik)}</p>
+        <p class="text-xs text-slate-500 mt-1">Usia: ${esc(sil.usia)}</p>
       </div>
 
       <div class="space-y-3">
         <div class="flex items-center space-x-2">
           <span class="w-7 h-7 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-xs font-bold">1</span>
-          <h4 class="text-sm font-bold text-slate-800">${esc(sil.param1_nama)}</h4>
+          <h4 class="text-sm font-bold text-slate-800">Aspek: ${esc(sil.aspek_penilaian)}</h4>
         </div>
-        <div class="space-y-2">
-          ${opt('p1_skor', 1, 'BB (Belum Berkembang)', sil.param1_skor1, p1Skor)}
-          ${opt('p1_skor', 2, 'MB (Mulai Berkembang)', sil.param1_skor2, p1Skor)}
-          ${opt('p1_skor', 3, 'BSH (Berkembang Sesuai Harapan)', sil.param1_skor3, p1Skor)}
-          ${opt('p1_skor', 4, 'BSB (Berkembang Sangat Baik)', sil.param1_skor4, p1Skor)}
-        </div>
-        <input type="text" id="p1_catatan" value="${esc(p1Cat)}" placeholder="Catatan (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
-      </div>
 
-      <div class="space-y-3 pt-4 border-t border-slate-100">
-        <div class="flex items-center space-x-2">
-          <span class="w-7 h-7 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-xs font-bold">2</span>
-          <h4 class="text-sm font-bold text-slate-800">${esc(sil.param2_nama)}</h4>
+        <div class="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-xl">
+          <p class="text-[10px] font-bold text-purple-700 uppercase tracking-wider mb-1">📌 Indikator Perilaku yang Diamati</p>
+          <p class="text-[11px] text-slate-700 leading-relaxed">${esc(sil.indikator_perilaku)}</p>
         </div>
+
         <div class="space-y-2">
-          ${opt('p2_skor', 1, 'BB (Belum Berkembang)', sil.param2_skor1, p2Skor)}
-          ${opt('p2_skor', 2, 'MB (Mulai Berkembang)', sil.param2_skor2, p2Skor)}
-          ${opt('p2_skor', 3, 'BSH (Berkembang Sesuai Harapan)', sil.param2_skor3, p2Skor)}
-          ${opt('p2_skor', 4, 'BSB (Berkembang Sangat Baik)', sil.param2_skor4, p2Skor)}
+          ${opt(1, 'Belum Berkembang', 'Anak belum menunjukkan indikator perilaku ini.', p1Skor)}
+          ${opt(2, 'Mulai Berkembang', 'Anak mulai menunjukkan indikator dengan bimbingan penuh.', p1Skor)}
+          ${opt(3, 'Berkembang', 'Anak menunjukkan indikator dengan bimbingan bertahap.', p1Skor)}
+          ${opt(4, 'Berkembang Baik', 'Anak menunjukkan indikator sesuai harapan, mandiri.', p1Skor)}
+          ${opt(5, 'Sangat Baik', 'Anak menunjukkan indikator secara mandiri, konsisten, dan bisa membantu teman.', p1Skor)}
         </div>
-        <input type="text" id="p2_catatan" value="${esc(p2Cat)}" placeholder="Catatan (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
+
+        <input type="text" id="p1_catatan" value="${esc(p1Cat)}" placeholder="Catatan (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
       </div>
 
       <button onclick="submitPenilaian()" class="${isEdit ? 'bg-amber-500 shadow-amber-200' : 'gradient-purple shadow-purple-200'} w-full text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg">
@@ -898,26 +931,27 @@ function renderFormPenilaian(sil, existing) {
 
 async function submitPenilaian() {
   const p1 = document.querySelector('input[name="p1_skor"]:checked');
-  const p2 = document.querySelector('input[name="p2_skor"]:checked');
-  if (!p1 || !p2) { await showPopup("warning", "Data Belum Lengkap", "Mohon pilih skor untuk semua parameter."); return; }
-  const sil = globalSilabus.find(s => String(s.pertemuan) === String(selectedPertemuan));
+  if (!p1) { await showPopup("warning", "Data Belum Lengkap", "Mohon pilih bintang penilaian."); return; }
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
+  const sil = getSilabusPertemuan(selectedPertemuan, siswa.usia);
+  if (!sil) { await showPopup("error", "Silabus Tidak Ditemukan", "Silabus untuk usia ini belum ada."); return; }
   const loading = showLoading("Menyimpan penilaian...");
   const payload = {
     action: "saveNilai",
     siswaId: selectedSiswaId,
     pertemuan: selectedPertemuan,
-    param1_nama: sil.param1_nama,
+    param1_nama: sil.aspek_penilaian,
     param1_skor: p1.value,
     param1_catatan: document.getElementById("p1_catatan").value,
-    param2_nama: sil.param2_nama,
-    param2_skor: p2.value,
-    param2_catatan: document.getElementById("p2_catatan").value
+    param2_nama: sil.indikator_perilaku,
+    param2_skor: 0,
+    param2_catatan: ""
   };
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1200));
     loading.close();
-    await showPopup("success", "Tersimpan!", "Penilaian berhasil dicatat.");
+    await showPopup("success", "Tersimpan!", "Penilaian bintang berhasil dicatat.");
     refreshData(() => onPilihSiswa());
     showToast("Penilaian tersimpan", "success");
   } catch (err) {
@@ -929,6 +963,7 @@ async function submitPenilaian() {
 
 function renderRiwayatPenilaian(nilaiSiswa) {
   const box = document.getElementById("guru-riwayat");
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
   const sorted = [...nilaiSiswa].sort((a,b) => parseInt(b.pertemuan) - parseInt(a.pertemuan));
   box.innerHTML = `
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft fade-in">
@@ -939,28 +974,25 @@ function renderRiwayatPenilaian(nilaiSiswa) {
       <div class="space-y-2.5 max-h-96 overflow-y-auto">
         ${sorted.length === 0 ? `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada penilaian.</p>` :
           sorted.map(n => {
-            const s1 = getSkor(1, n), s2 = getSkor(2, n), total = s1 + s2;
-            const warna = total >= 7 ? 'text-emerald-600 bg-emerald-50' : total >= 5 ? 'text-blue-600 bg-blue-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+            const s1 = getSkor(1, n);
+            const warna = s1 >= 4 ? 'text-emerald-600 bg-emerald-50' : s1 >= 3 ? 'text-blue-600 bg-blue-50' : s1 >= 2 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
             return `
               <div class="p-4 bg-slate-50 rounded-2xl">
                 <div class="flex justify-between items-start mb-3">
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-slate-800">Pertemuan ${n.pertemuan}</p>
+                    <p class="text-sm font-bold text-slate-800">Pertemuan ${String(n.pertemuan).replace(/\D/g,"")}</p>
                     <p class="text-[10px] text-slate-400 mt-0.5">${fmtTanggal(n.timestamp)}</p>
                   </div>
-                  <span class="text-xs font-bold px-2.5 py-1 rounded-lg ${warna} shrink-0 ml-2">${total}/8</span>
+                  <div class="text-right shrink-0 ml-2">
+                    <div style="color:#f59e0b;font-size:1rem;letter-spacing:0.05rem">${renderBintangHtml(s1)}</div>
+                    <p class="text-[10px] font-bold ${warna} mt-0.5 px-2 py-0.5 rounded-lg">${s1}/5</p>
+                  </div>
                 </div>
                 <div class="space-y-1.5 mb-3">
-                  <div class="flex justify-between text-[11px]">
-                    <span class="text-slate-600 truncate pr-2">${esc(getNama(1, n))}</span>
-                    <span class="font-bold text-purple-600 shrink-0">${s1}/4</span>
-                  </div>
-                  <div class="flex justify-between text-[11px]">
-                    <span class="text-slate-600 truncate pr-2">${esc(getNama(2, n))}</span>
-                    <span class="font-bold text-purple-600 shrink-0">${s2}/4</span>
-                  </div>
+                  <p class="text-[11px] text-slate-600 font-medium">${esc(getNama(1, n))}</p>
+                  ${getCatatan(1, n) ? `<p class="text-[10px] text-slate-500 italic">"${esc(getCatatan(1, n))}"</p>` : ''}
                 </div>
-                <button onclick="openModalEdit('${esc(n.siswa_id)}', '${n.pertemuan}')" class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">✏️ Edit Nilai</button>
+                <button onclick="openModalEdit('${esc(n.siswa_id)}', '${String(n.pertemuan).replace(/\D/g,"")}')" class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">✏️ Edit Nilai</button>
               </div>`;
           }).join('')}
       </div>
@@ -971,21 +1003,23 @@ function renderRiwayatPenilaian(nilaiSiswa) {
 // MODAL EDIT
 // ============================================================
 function openModalEdit(siswaId, pertemuan) {
-  const nilai = globalNilai.find(n => String(n.siswa_id) === String(siswaId) && String(n.pertemuan) === String(pertemuan));
+  const nilai = globalNilai.find(n => String(n.siswa_id) === String(siswaId) && String(n.pertemuan).replace(/\D/g,"") === String(pertemuan));
   if (!nilai) return;
-  const sil = globalSilabus.find(s => String(s.pertemuan) === String(pertemuan));
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
+  const sil = getSilabusPertemuan(pertemuan, siswa.usia);
   if (!sil) return;
   const modal = document.getElementById("modal-edit");
   const content = document.getElementById("modal-edit-content");
-  const p1Skor = getSkor(1, nilai), p2Skor = getSkor(2, nilai);
-  const opt = (name, val, label, desc, checked) => {
-    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600' };
+  const p1Skor = getSkor(1, nilai);
+  const opt = (val, label, desc, checked) => {
+    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600', 5: 'text-purple-600' };
+    const bintang = "⭐".repeat(val);
     return `
       <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3 rounded-2xl cursor-pointer">
         <div class="flex items-start space-x-2">
-          <input type="radio" name="${name}" value="${val}" ${checked == val ? 'checked' : ''} class="mt-0.5">
+          <input type="radio" name="edit_p1" value="${val}" ${checked == val ? 'checked' : ''} class="mt-0.5">
           <div class="flex-1">
-            <span class="text-[10px] font-bold ${colors[val]} uppercase">Skor ${val} - ${label}</span>
+            <span class="text-[10px] font-bold ${colors[val]} uppercase">${bintang} (${val}/5) - ${label}</span>
             <p class="text-[10px] text-slate-600 mt-0.5">${esc(desc)}</p>
           </div>
         </div>
@@ -995,28 +1029,21 @@ function openModalEdit(siswaId, pertemuan) {
     <div class="space-y-1">
       <span class="text-[10px] font-bold text-purple-600 uppercase">Pertemuan ${pertemuan}</span>
       <h4 class="text-sm font-bold text-slate-900">${esc(sil.judul)}</h4>
+      <p class="text-[10px] text-slate-500">Usia: ${esc(sil.usia)} • ${esc(sil.aspek_penilaian)}</p>
+    </div>
+    <div class="bg-purple-50 border-l-4 border-purple-500 p-2.5 rounded-xl">
+      <p class="text-[10px] font-bold text-purple-700 uppercase mb-1">Indikator</p>
+      <p class="text-[10px] text-slate-700 leading-relaxed">${esc(sil.indikator_perilaku)}</p>
     </div>
     <div class="space-y-3 pt-3 border-t border-slate-100">
-      <div>
-        <h4 class="text-xs font-bold text-slate-800 mb-2">${esc(sil.param1_nama)}</h4>
-        <div class="space-y-1.5">
-          ${opt('edit_p1', 1, 'BB', sil.param1_skor1, p1Skor)}
-          ${opt('edit_p1', 2, 'MB', sil.param1_skor2, p1Skor)}
-          ${opt('edit_p1', 3, 'BSH', sil.param1_skor3, p1Skor)}
-          ${opt('edit_p1', 4, 'BSB', sil.param1_skor4, p1Skor)}
-        </div>
-        <input type="text" id="edit_p1_catatan" value="${esc(getCatatan(1, nilai))}" placeholder="Catatan" class="w-full mt-2 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
+      <div class="space-y-1.5">
+        ${opt(1, 'Belum Berkembang', 'Belum menunjukkan indikator.', p1Skor)}
+        ${opt(2, 'Mulai Berkembang', 'Dengan bimbingan penuh.', p1Skor)}
+        ${opt(3, 'Berkembang', 'Dengan bimbingan bertahap.', p1Skor)}
+        ${opt(4, 'Berkembang Baik', 'Sesuai harapan, mandiri.', p1Skor)}
+        ${opt(5, 'Sangat Baik', 'Mandiri & konsisten.', p1Skor)}
       </div>
-      <div>
-        <h4 class="text-xs font-bold text-slate-800 mb-2">${esc(sil.param2_nama)}</h4>
-        <div class="space-y-1.5">
-          ${opt('edit_p2', 1, 'BB', sil.param2_skor1, p2Skor)}
-          ${opt('edit_p2', 2, 'MB', sil.param2_skor2, p2Skor)}
-          ${opt('edit_p2', 3, 'BSH', sil.param2_skor3, p2Skor)}
-          ${opt('edit_p2', 4, 'BSB', sil.param2_skor4, p2Skor)}
-        </div>
-        <input type="text" id="edit_p2_catatan" value="${esc(getCatatan(2, nilai))}" placeholder="Catatan" class="w-full mt-2 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
-      </div>
+      <input type="text" id="edit_p1_catatan" value="${esc(getCatatan(1, nilai))}" placeholder="Catatan" class="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
     </div>
     <button onclick="submitEditNilai('${esc(siswaId)}', '${pertemuan}')" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">💾 Simpan Perubahan</button>`;
   modal.classList.remove("hidden");
@@ -1035,17 +1062,16 @@ function closeModalEdit() { document.getElementById("modal-edit").classList.add(
 
 async function submitEditNilai(siswaId, pertemuan) {
   const p1 = document.querySelector('input[name="edit_p1"]:checked');
-  const p2 = document.querySelector('input[name="edit_p2"]:checked');
-  if (!p1 || !p2) { await showPopup("warning", "Data Belum Lengkap", "Isi semua parameter."); return; }
-  const sil = globalSilabus.find(s => String(s.pertemuan) === String(pertemuan));
+  if (!p1) { await showPopup("warning", "Data Belum Lengkap", "Pilih bintang."); return; }
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
+  const sil = getSilabusPertemuan(pertemuan, siswa.usia);
   const loading = showLoading("Menyimpan perubahan...");
   const payload = {
     action: "saveNilai",
     siswaId, pertemuan,
-    param1_nama: sil.param1_nama, param1_skor: p1.value,
+    param1_nama: sil.aspek_penilaian, param1_skor: p1.value,
     param1_catatan: document.getElementById("edit_p1_catatan").value,
-    param2_nama: sil.param2_nama, param2_skor: p2.value,
-    param2_catatan: document.getElementById("edit_p2_catatan").value
+    param2_nama: sil.indikator_perilaku, param2_skor: 0, param2_catatan: ""
   };
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
@@ -1063,6 +1089,98 @@ async function submitEditNilai(siswaId, pertemuan) {
 }
 
 // ============================================================
+// DASHBOARD GURU - CAPAIAN SISWA
+// ============================================================
+function renderDashboardGuru() {
+  const box = document.getElementById("dashboard-guru-content");
+  if (!box) return;
+
+  const stats = globalSiswa.map(s => {
+    const silabusUsia = getSilabusByUsia(s.usia);
+    const totalPertemuanUsia = silabusUsia.length;
+    const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(s.siswa_id));
+    const um = new Map();
+    nilaiSiswa.forEach(n => {
+      const k = String(n.pertemuan).replace(/\D/g, "");
+      if (!k) return;
+      // hanya hitung yang ada di silabus usia ini
+      if (silabusUsia.find(sil => String(sil.pertemuan) === k)) {
+        if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
+      }
+    });
+    const totalBintang = Array.from(um.values()).reduce((sum, n) => sum + getSkor(1, n), 0);
+    const maxBintang = totalPertemuanUsia * 5;
+    const persen = maxBintang > 0 ? ((totalBintang / maxBintang) * 100).toFixed(1) : 0;
+    const rataBintang = um.size > 0 ? (totalBintang / um.size).toFixed(1) : 0;
+    return { ...s, totalBintang, maxBintang, count: um.size, totalPertemuanUsia, persen, rataBintang };
+  }).sort((a, b) => b.totalBintang - a.totalBintang);
+
+  const totalSiswa = globalSiswa.length;
+  const rataRata = totalSiswa > 0
+    ? (stats.reduce((s, x) => s + parseFloat(x.persen), 0) / totalSiswa).toFixed(1)
+    : 0;
+  const totalBintangSemua = stats.reduce((s, x) => s + x.totalBintang, 0);
+
+  box.innerHTML = `
+    <div class="grid grid-cols-3 gap-2">
+      <div class="gradient-purple p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Siswa</p>
+        <p class="text-2xl font-bold mt-1">${totalSiswa}</p>
+      </div>
+      <div class="gradient-green p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Total ⭐</p>
+        <p class="text-2xl font-bold mt-1">${totalBintangSemua}</p>
+      </div>
+      <div class="gradient-blue p-4 rounded-3xl text-white shadow-soft">
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Rata-rata</p>
+        <p class="text-2xl font-bold mt-1">${rataRata}%</p>
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
+      <h3 class="text-sm font-bold text-slate-900 mb-4">🏆 Peringkat Siswa (Bintang)</h3>
+      <div class="space-y-2">
+        ${stats.length === 0 ? '<p class="text-xs text-slate-400 text-center py-6">Belum ada siswa.</p>' :
+          stats.map((s, i) => {
+            const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `${i+1}`;
+            return `
+              <div class="flex items-center space-x-3 p-3 bg-slate-50 rounded-2xl">
+                <div class="w-8 h-8 bg-white rounded-xl flex items-center justify-center text-xs font-bold text-slate-700 shrink-0 border border-slate-200">${medal}</div>
+                ${renderAvatar(s, 'md')}
+                <div class="flex-1 min-w-0">
+                  <p class="text-xs font-bold text-slate-800 truncate">${esc(s.nama_siswa)}</p>
+                  <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count}/${s.totalPertemuanUsia} pertemuan</p>
+                </div>
+                <div class="text-right shrink-0">
+                  <div style="color:#f59e0b;font-size:0.85rem">${renderBintangHtml(s.rataBintang)}</div>
+                  <p class="text-[10px] text-slate-500 font-bold">${s.totalBintang}⭐ • ${s.persen}%</p>
+                </div>
+              </div>`;
+          }).join('')}
+      </div>
+    </div>
+
+    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
+      <h3 class="text-sm font-bold text-slate-900 mb-4">📊 Detail Capaian per Siswa</h3>
+      <div class="space-y-3">
+        ${stats.map(s => {
+          const warna = parseFloat(s.persen) >= 85 ? 'bg-emerald-500' : parseFloat(s.persen) >= 65 ? 'bg-blue-500' : 'bg-amber-500';
+          return `
+            <div>
+              <div class="flex justify-between items-center mb-1.5">
+                <span class="text-xs font-bold text-slate-800">${esc(s.nama_siswa)} <span class="text-slate-400 font-normal">(${s.usia} thn)</span></span>
+                <span class="text-[10px] font-bold text-slate-500">${s.totalBintang}/${s.maxBintang} ⭐ • ${s.persen}%</span>
+              </div>
+              <div class="w-full bg-slate-100 rounded-full h-2">
+                <div class="${warna} rounded-full h-2 transition-all" style="width: ${s.persen}%"></div>
+              </div>
+            </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+}
+
+// ============================================================
 // SILABUS
 // ============================================================
 function renderSilabusList() {
@@ -1071,59 +1189,75 @@ function renderSilabusList() {
   if (total) total.innerText = globalSilabus.length;
   if (!box) return;
   if (globalSilabus.length === 0) {
-    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Silabus kosong. Klik + untuk menambah, atau isi langsung di Google Sheet.</p>`;
+    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Silabus kosong. Klik + untuk menambah.</p>`;
     return;
   }
+
+  // Group by level, lalu by pertemuan (usia ditampilkan sebagai chip)
   const groups = {};
   globalSilabus.forEach(sil => {
-    if (!groups[sil.level]) groups[sil.level] = [];
-    groups[sil.level].push(sil);
+    if (!groups[sil.level]) groups[sil.level] = {};
+    const p = String(sil.pertemuan);
+    if (!groups[sil.level][p]) groups[sil.level][p] = [];
+    groups[sil.level][p].push(sil);
   });
-  box.innerHTML = Object.entries(groups).map(([level, items]) => `
+
+  box.innerHTML = Object.entries(groups).map(([level, pertemuans]) => `
     <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft">
       <h3 class="text-[11px] font-bold text-purple-600 uppercase tracking-wider mb-3 px-1">${esc(level)}</h3>
       <div class="space-y-2">
-        ${items.map(sil => `
-          <div class="flex items-center space-x-2">
-            <button onclick="openModalSilabus('${sil.pertemuan}')" class="flex-1 text-left p-3.5 bg-slate-50 hover:bg-purple-50 rounded-2xl active:scale-[0.99] transition-all">
-              <div class="flex items-start justify-between">
+        ${Object.entries(pertemuans).sort((a,b) => parseInt(a[0]) - parseInt(b[0])).map(([p, items]) => {
+          const usiaList = items.map(i => normalisasiUsia(i.usia)).sort();
+          const judul = items[0].judul;
+          const aspek = items[0].aspek_penilaian;
+          return `
+            <div class="bg-slate-50 rounded-2xl p-3.5">
+              <div class="flex items-start justify-between mb-2">
                 <div class="flex-1 min-w-0 pr-2">
                   <div class="flex items-center space-x-2 mb-1">
-                    <span class="w-6 h-6 gradient-purple text-white rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0">${sil.pertemuan}</span>
-                    <p class="text-xs font-bold text-slate-800 truncate">${esc(sil.judul)}</p>
+                    <span class="w-6 h-6 gradient-purple text-white rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0">${p}</span>
+                    <p class="text-xs font-bold text-slate-800 truncate">${esc(judul)}</p>
                   </div>
-                  <p class="text-[10px] text-slate-400 truncate ml-8">${esc(sil.param1_nama)} • ${esc(sil.param2_nama)}</p>
+                  <p class="text-[10px] text-slate-500 ml-8">Aspek: ${esc(aspek)}</p>
                 </div>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a855f7" stroke-width="2.5" stroke-linecap="round"><path d="M9 18l6-6-6-6"/></svg>
               </div>
-            </button>
-            <button onclick="hapusSilabusKonfirmasi('${sil.pertemuan}')" class="w-11 h-11 bg-rose-50 hover:bg-rose-100 rounded-2xl flex items-center justify-center active:scale-95 transition-all shrink-0">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#e11d48" stroke-width="2" stroke-linecap="round"><path d="M3 6h18M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2M19 6l-1 14a2 2 0 01-2 2H8a2 2 0 01-2-2L5 6"/></svg>
-            </button>
-          </div>`).join('')}
+              <div class="flex flex-wrap gap-1.5 ml-8">
+                ${usiaList.map(u => `
+                  <button onclick="openModalSilabus('${p}', '${u}')" class="text-[10px] font-bold bg-white border border-purple-200 text-purple-700 px-2.5 py-1 rounded-lg hover:bg-purple-50 active:scale-95 transition-all">
+                    👦 ${u} thn
+                  </button>`).join('')}
+              </div>
+            </div>`;
+        }).join('')}
       </div>
     </div>`).join('');
 }
 
 function openModalSilabusBaru() {
   editingSilabusPertemuan = null;
-  document.getElementById("modal-silabus-title").innerText = "➕ Tambah Pertemuan";
+  editingSilabusUsia = null;
+  document.getElementById("modal-silabus-title").innerText = "➕ Tambah Silabus";
   const content = document.getElementById("modal-silabus-content");
   const nextNum = globalSilabus.length > 0 ? Math.max(...globalSilabus.map(s => parseInt(s.pertemuan))) + 1 : 1;
   const firstLevel = globalLevel.length > 0 ? globalLevel[0].level : "";
   content.innerHTML = formSilabusHTML({
-    pertemuan: nextNum, level: firstLevel, judul: "", praktik: "",
-    param1_nama: "", param1_skor1: "", param1_skor2: "", param1_skor3: "", param1_skor4: "",
-    param2_nama: "", param2_skor1: "", param2_skor2: "", param2_skor3: "", param2_skor4: ""
+    pertemuan: nextNum, level: firstLevel, judul: "", usia: "6 Tahun",
+    aspek_penilaian: "", indikator_perilaku: ""
   }, false);
   document.getElementById("modal-silabus").classList.remove("hidden");
 }
 
-function openModalSilabus(pertemuan) {
-  const sil = globalSilabus.find(s => String(s.pertemuan) === String(pertemuan));
+let editingSilabusUsia = null;
+
+function openModalSilabus(pertemuan, usia) {
+  const u = normalisasiUsia(usia);
+  const sil = globalSilabus.find(s =>
+    String(s.pertemuan) === String(pertemuan) && normalisasiUsia(s.usia) === u
+  );
   if (!sil) return;
   editingSilabusPertemuan = pertemuan;
-  document.getElementById("modal-silabus-title").innerText = `✏️ Edit P${pertemuan}`;
+  editingSilabusUsia = u;
+  document.getElementById("modal-silabus-title").innerText = `✏️ Edit P${pertemuan} • ${u} Thn`;
   document.getElementById("modal-silabus-content").innerHTML = formSilabusHTML(sil, true);
   document.getElementById("modal-silabus").classList.remove("hidden");
 }
@@ -1137,32 +1271,25 @@ function formSilabusHTML(sil, isEdit) {
         : `<input type="text" id="${id}" value="${esc(val)}" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">`}
     </div>`;
   const levelOptions = globalLevel.map(l => `<option ${sil.level === l.level ? 'selected' : ''}>${esc(l.level)}</option>`).join('');
+  const usiaOptions = ['4 Tahun','5 Tahun','6 Tahun','7 Tahun']
+    .map(u => `<option ${normalisasiUsia(sil.usia) === normalisasiUsia(u) ? 'selected' : ''}>${u}</option>`).join('');
   return `
-    ${field('sil_pertemuan', 'Pertemuan Ke-', sil.pertemuan)}
+    <div class="grid grid-cols-2 gap-3">
+      ${field('sil_pertemuan', 'Pertemuan Ke-', sil.pertemuan)}
+      <div>
+        <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Usia</label>
+        <select id="sil_usia" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${usiaOptions}</select>
+      </div>
+    </div>
     <div>
       <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Level</label>
       <select id="sil_level" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${levelOptions}</select>
     </div>
-    ${field('sil_judul', 'Judul Materi', sil.judul)}
-    ${field('sil_praktik', 'Praktik Kelas', sil.praktik, true)}
-    <div class="pt-3 border-t border-slate-100 space-y-3">
-      <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">📌 Parameter 1</p>
-      ${field('sil_p1_nama', 'Nama Parameter', sil.param1_nama)}
-      ${field('sil_p1_s1', 'Skor 1 - BB (Belum Berkembang)', sil.param1_skor1, true)}
-      ${field('sil_p1_s2', 'Skor 2 - MB (Mulai Berkembang)', sil.param1_skor2, true)}
-      ${field('sil_p1_s3', 'Skor 3 - BSH (Berkembang Sesuai Harapan)', sil.param1_skor3, true)}
-      ${field('sil_p1_s4', 'Skor 4 - BSB (Berkembang Sangat Baik)', sil.param1_skor4, true)}
-    </div>
-    <div class="pt-3 border-t border-slate-100 space-y-3">
-      <p class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">📌 Parameter 2</p>
-      ${field('sil_p2_nama', 'Nama Parameter', sil.param2_nama)}
-      ${field('sil_p2_s1', 'Skor 1 - BB (Belum Berkembang)', sil.param2_skor1, true)}
-      ${field('sil_p2_s2', 'Skor 2 - MB (Mulai Berkembang)', sil.param2_skor2, true)}
-      ${field('sil_p2_s3', 'Skor 3 - BSH (Berkembang Sesuai Harapan)', sil.param2_skor3, true)}
-      ${field('sil_p2_s4', 'Skor 4 - BSB (Berkembang Sangat Baik)', sil.param2_skor4, true)}
-    </div>
+    ${field('sil_judul', 'Materi Pelajaran', sil.judul, true)}
+    ${field('sil_aspek', 'Aspek Penilaian', sil.aspek_penilaian)}
+    ${field('sil_indikator', 'Indikator Perilaku', sil.indikator_perilaku, true)}
     <button onclick="submitSilabus(${isEdit})" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
-      ${isEdit ? '💾 Simpan Perubahan' : '➕ Tambah Pertemuan'}
+      ${isEdit ? '💾 Simpan Perubahan' : '➕ Tambah Silabus'}
     </button>`;
 }
 
@@ -1173,25 +1300,17 @@ async function submitSilabus(isEdit) {
     pertemuan: document.getElementById("sil_pertemuan").value,
     level: document.getElementById("sil_level").value,
     judul: document.getElementById("sil_judul").value,
-    praktik: document.getElementById("sil_praktik").value,
-    param1_nama: document.getElementById("sil_p1_nama").value,
-    param1_skor1: document.getElementById("sil_p1_s1").value,
-    param1_skor2: document.getElementById("sil_p1_s2").value,
-    param1_skor3: document.getElementById("sil_p1_s3").value,
-    param1_skor4: document.getElementById("sil_p1_s4").value,
-    param2_nama: document.getElementById("sil_p2_nama").value,
-    param2_skor1: document.getElementById("sil_p2_s1").value,
-    param2_skor2: document.getElementById("sil_p2_s2").value,
-    param2_skor3: document.getElementById("sil_p2_s3").value,
-    param2_skor4: document.getElementById("sil_p2_s4").value
+    usia: document.getElementById("sil_usia").value,
+    aspek_penilaian: document.getElementById("sil_aspek").value,
+    indikator_perilaku: document.getElementById("sil_indikator").value
   };
-  const loading = showLoading(isEdit ? "Menyimpan perubahan..." : "Menambahkan pertemuan...");
+  const loading = showLoading(isEdit ? "Menyimpan perubahan..." : "Menambahkan silabus...");
   try {
     if (isEdit) {
-      const idx = globalSilabus.findIndex(s => String(s.pertemuan) === String(editingSilabusPertemuan));
-      if (idx >= 0) globalSilabus[idx] = { ...globalSilabus[idx], ...data };
+      data.pertemuan_lama = editingSilabusPertemuan;
+      data.usia_lama = editingSilabusUsia;
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-        body: JSON.stringify({ action: "updateSilabus", silabus: globalSilabus }) });
+        body: JSON.stringify({ action: "updateSilabus", pertemuan: data.pertemuan_lama, usia: data.usia_lama, ...data }) });
     } else {
       await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify({ action: "tambahSilabus", ...data }) });
@@ -1199,9 +1318,9 @@ async function submitSilabus(isEdit) {
     await new Promise(r => setTimeout(r, 1200));
     loading.close();
     closeModalSilabus();
-    await showPopup("success", "Berhasil!", isEdit ? "Silabus diperbarui." : "Pertemuan baru ditambahkan.");
+    await showPopup("success", "Berhasil!", isEdit ? "Silabus diperbarui." : "Silabus baru ditambahkan.");
     refreshData(() => renderSilabusList());
-    showToast(isEdit ? "Silabus diperbarui" : "Pertemuan ditambahkan", "success");
+    showToast(isEdit ? "Silabus diperbarui" : "Silabus ditambahkan", "success");
   } catch (err) {
     loading.close();
     await showPopup("error", "Gagal", "Terjadi kesalahan.");
@@ -1209,18 +1328,18 @@ async function submitSilabus(isEdit) {
   }
 }
 
-async function hapusSilabusKonfirmasi(pertemuan) {
-  const ok = await showConfirm("Hapus Pertemuan?", `Yakin hapus Pertemuan ${pertemuan}?`, "Ya, Hapus", "Batal");
+async function hapusSilabusKonfirmasi(pertemuan, usia) {
+  const ok = await showConfirm("Hapus Silabus?", `Yakin hapus Pertemuan ${pertemuan} untuk usia ${usia} tahun?`, "Ya, Hapus", "Batal");
   if (!ok) return;
   const loading = showLoading("Menghapus...");
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "hapusSilabus", pertemuan }) });
+      body: JSON.stringify({ action: "hapusSilabus", pertemuan, usia }) });
     await new Promise(r => setTimeout(r, 1000));
     loading.close();
-    await showPopup("success", "Terhapus!", `Pertemuan ${pertemuan} dihapus.`);
+    await showPopup("success", "Terhapus!", `Silabus dihapus.`);
     refreshData(() => renderSilabusList());
-    showToast("Pertemuan dihapus", "success");
+    showToast("Silabus dihapus", "success");
   } catch (err) {
     loading.close();
     await showPopup("error", "Gagal", "Terjadi kesalahan.");
@@ -1229,26 +1348,25 @@ async function hapusSilabusKonfirmasi(pertemuan) {
 }
 
 // ============================================================
-// DASHBOARD
+// DASHBOARD SUPERADMIN
 // ============================================================
 function renderDashboard() {
   const box = document.getElementById("tab-dashboard");
   if (!box) return;
   const totalSiswa = globalSiswa.length;
-  const totalPertemuan = globalSilabus.length;
   const totalNilai = globalNilai.length;
 
   const stats = globalSiswa.map(s => {
     const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(s.siswa_id));
     const um = new Map();
     nilaiSiswa.forEach(n => {
-      const k = String(n.pertemuan);
+      const k = String(n.pertemuan).replace(/\D/g,"");
       if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
     });
-    const total = Array.from(um.values()).reduce((sum, n) => sum + getSkor(1, n) + getSkor(2, n), 0);
-    const maxSkor = totalPertemuan * 8;
-    return { ...s, totalSkor: total, count: um.size, persen: maxSkor > 0 ? ((total/maxSkor)*100).toFixed(1) : 0 };
-  }).sort((a,b) => b.totalSkor - a.totalSkor);
+    const total = Array.from(um.values()).reduce((sum, n) => sum + getSkor(1, n), 0);
+    const maxBintang = globalSilabus.filter(sil => normalisasiUsia(sil.usia) === normalisasiUsia(s.usia)).length * 5;
+    return { ...s, totalBintang: total, count: um.size, maxBintang, persen: maxBintang > 0 ? ((total/maxBintang)*100).toFixed(1) : 0 };
+  }).sort((a,b) => b.totalBintang - a.totalBintang);
 
   box.innerHTML = `
     <div>
@@ -1262,10 +1380,10 @@ function renderDashboard() {
       </div>
       <div class="gradient-green p-4 rounded-3xl text-white shadow-soft">
         <p class="text-[9px] uppercase tracking-wider text-white/70">Pertemuan</p>
-        <p class="text-2xl font-bold mt-1">${totalPertemuan}</p>
+        <p class="text-2xl font-bold mt-1">${globalSilabus.length}</p>
       </div>
       <div class="gradient-blue p-4 rounded-3xl text-white shadow-soft">
-        <p class="text-[9px] uppercase tracking-wider text-white/70">Nilai</p>
+        <p class="text-[9px] uppercase tracking-wider text-white/70">Penilaian</p>
         <p class="text-2xl font-bold mt-1">${totalNilai}</p>
       </div>
     </div>
@@ -1280,10 +1398,10 @@ function renderDashboard() {
               ${renderAvatar(s, 'md')}
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-slate-800 truncate">${esc(s.nama_siswa)}</p>
-                <p class="text-[10px] text-slate-400">${s.count}/${totalPertemuan} pertemuan</p>
+                <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count} pertemuan</p>
               </div>
               <div class="text-right shrink-0">
-                <p class="text-xs font-bold text-purple-600">${s.totalSkor}<span class="text-slate-400 font-normal">/${totalPertemuan*8}</span></p>
+                <p class="text-xs font-bold text-purple-600">${s.totalBintang}⭐</p>
                 <p class="text-[10px] text-slate-400">${s.persen}%</p>
               </div>
             </div>`;
@@ -1293,111 +1411,39 @@ function renderDashboard() {
 }
 
 // ============================================================
-// ASESMEN AWAL
-// ============================================================
-function renderAsesmenForm() {
-  const form = document.getElementById("form-10-soal");
-  if (!form) return;
-  const questions = [
-    { q: "🤖 Minat pada Robot", t: "Saat melihat robot/mainan bergerak, anak...", opts: ["Tidak tertarik", "Fokus sebentar", "Antusias mengamati", "Sangat antusias & bertanya"] },
-    { q: "👆 Eksplorasi Aktif", t: "Anak mencoba menekan tombol/menggerakkan mainan robot...", opts: ["Tidak mau", "Perlu dibantu", "Mau mencoba", "Mandiri & berulang"] },
-    { q: "🔢 Mengenal Bagian Robot", t: "Anak mampu menunjuk bagian robot (otak, saraf, tubuh)...", opts: ["Belum bisa", "1 bagian", "2 bagian", "3 bagian lengkap"] },
-    { q: "🪜 Bidang Miring", t: "Saat bermain papan miring & mobil, anak...", opts: ["Tidak tertarik", "Mendorong asal", "Mencoba membandingkan", "Paham konsep hemat tenaga"] },
-    { q: "⚖️ Tuas / Jungkat-jungkit", t: "Saat bermain jungkat-jungkit, anak...", opts: ["Tidak mau", "Duduk saja", "Mencoba naik-turun", "Paham posisi titik tumpu"] },
-    { q: "🎡 Katrol", t: "Saat melihat tiang bendera/timba, anak...", opts: ["Tidak peduli", "Melihat sebentar", "Tertarik mencoba", "Paham cara kerja"] },
-    { q: "🛞 Roda Berporos", t: "Saat memutar roda mainan, anak...", opts: ["Tidak tertarik", "Memutar asal", "Mengamati poros", "Paham roda & poros"] },
-    { q: "⚡ Elektronika Sederhana", t: "Saat lampu LED menyala dari baterai, anak...", opts: ["Tidak peduli", "Kaget sebentar", "Senang & mencoba lagi", "Bertanya cara kerjanya"] },
-    { q: "🔗 Urutan (Sequence)", t: "Anak mampu mengikuti 2-3 perintah berurutan...", opts: ["Belum bisa", "1 langkah", "2 langkah", "3+ langkah"] },
-    { q: "💡 Logika Jika-Maka", t: "Anak memahami 'Jika hujan, maka pakai payung'...", opts: ["Belum paham", "Bingung", "Mulai paham", "Paham & bisa contoh lain"] }
-  ];
-  form.innerHTML = questions.map((item, i) => `
-    <div class="space-y-2 pb-4 ${i < questions.length - 1 ? 'border-b border-slate-100' : ''}">
-      <div class="flex items-center space-x-2">
-        <span class="w-6 h-6 bg-purple-100 text-purple-600 rounded-lg flex items-center justify-center text-[10px] font-bold">${i+1}</span>
-        <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">${item.q}</span>
-      </div>
-      <p class="text-xs font-medium text-slate-800 ml-8">${esc(item.t)}</p>
-      <div class="grid grid-cols-2 gap-2 ml-8">
-        ${item.opts.map((o, idx) => `
-          <label class="bg-slate-50 border-2 border-slate-100 p-2.5 rounded-xl cursor-pointer flex items-center space-x-2 active:scale-[0.98] transition-all">
-            <input type="radio" name="q${i+1}" value="${idx}" ${idx === 0 ? 'required' : ''}>
-            <span class="text-[11px] text-slate-700">${esc(o)}</span>
-          </label>`).join('')}
-      </div>
-    </div>`).join('') + `
-    <button type="submit" class="w-full gradient-purple text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">Selesai & Lihat Rapor 🚀</button>`;
-  form.querySelectorAll('input[type="radio"]').forEach(r => {
-    r.addEventListener('change', function() {
-      form.querySelectorAll(`input[name="${this.name}"]`).forEach(x => {
-        const l = x.closest('label');
-        if (x.checked) { l.classList.add('border-purple-500', 'bg-purple-50'); l.classList.remove('border-slate-100'); }
-        else { l.classList.remove('border-purple-500', 'bg-purple-50'); l.classList.add('border-slate-100'); }
-      });
-    });
-  });
-}
-
-async function submitAsesmen10(e) {
-  e.preventDefault();
-  let totalSkor = 0;
-  for (let i = 1; i <= 10; i++) {
-    const v = document.querySelector(`input[name="q${i}"]:checked`);
-    if (v) totalSkor += parseInt(v.value);
-  }
-  const persen = ((totalSkor / 30) * 100).toFixed(1);
-  let rek = "";
-  if (persen < 65) rek = `[Robo Novice] (${totalSkor}/30 - ${persen}%). Anak membutuhkan pendampingan intensif.`;
-  else if (persen <= 84) rek = `[Tech Builder] (${totalSkor}/30 - ${persen}%). Anak menguasai kompetensi dasar dengan baik.`;
-  else rek = `[Code Commander] (${totalSkor}/30 - ${persen}%). Anak memiliki logika luar biasa.`;
-  const loading = showLoading("Menyimpan asesmen...");
-  try {
-    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
-      body: JSON.stringify({ action: "saveAsesmen10", siswaId: currentLoggedInUser.siswa_id, totalSkor, persentase: persen + "%", rekomendasiAi: rek }) });
-    await new Promise(r => setTimeout(r, 1200));
-    const res = await fetch(`${SCRIPT_URL}?action=getAsesmen`).then(r => r.json());
-    globalAsesmen = res.data || [];
-    loading.close();
-    await showPopup("success", "Tersimpan!", "Asesmen awal dicatat.");
-    renderLaporanAnak();
-    showToast("Asesmen tersimpan", "success");
-  } catch (err) {
-    loading.close();
-    await showPopup("error", "Gagal", "Terjadi kesalahan.");
-    console.error(err);
-  }
-}
-
-// ============================================================
-// RAPOR ORANG TUA
+// RAPOR ORANG TUA (bintang)
 // ============================================================
 function renderLaporanAnak() {
   const container = document.getElementById("laporan-container");
   const headerBox = document.getElementById("ortu-header");
-  const asesmenCard = document.getElementById("asesmen-card-wrapper");
   const siswaId = currentLoggedInUser.siswa_id;
   const siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
-  const asesmenObj = globalAsesmen.find(a => String(a.siswa_id) === String(siswaId));
   if (!siswaObj) { container.innerHTML = `<p class="text-xs text-rose-500 text-center">Data tidak ditemukan.</p>`; return; }
 
+  const silabusUsia = getSilabusByUsia(siswaObj.usia);
   const nilaiList = globalNilai.filter(n => String(n.siswa_id) === String(siswaId));
   const um = new Map();
   nilaiList.forEach(n => {
-    const k = String(n.pertemuan);
+    const k = String(n.pertemuan).replace(/\D/g, "");
+    if (!k) return;
     if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
   });
   const nilaiUnik = Array.from(um.values());
-  if (asesmenObj) asesmenCard.classList.add("hidden"); else asesmenCard.classList.remove("hidden");
 
-  // Hitung statistik per level dinamis
+  // Statistik per level (dalam konteks usia anak)
   const levelData = globalLevel.map(lv => {
     const min = parseInt(lv.pertemuan_min), max = parseInt(lv.pertemuan_max);
-    const filtered = nilaiUnik.filter(n => parseInt(n.pertemuan) >= min && parseInt(n.pertemuan) <= max);
-    const total = filtered.reduce((s, n) => s + getSkor(1, n) + getSkor(2, n), 0);
-    const maxP = max - min + 1;
+    const silabusLevel = silabusUsia.filter(s => parseInt(s.pertemuan) >= min && parseInt(s.pertemuan) <= max);
+    const filtered = nilaiUnik.filter(n => {
+      const p = parseInt(String(n.pertemuan).replace(/\D/g,""));
+      return p >= min && p <= max && silabusLevel.find(s => String(s.pertemuan) === String(p));
+    });
+    const total = filtered.reduce((s, n) => s + getSkor(1, n), 0);
+    const maxP = silabusLevel.length;
     return {
       level: lv.level, icon: lv.icon || "📘", warna: lv.warna || "#7c3aed",
-      total, max: maxP * 8, count: filtered.length, maxP,
-      selesai: filtered.length >= maxP
+      total, max: maxP * 5, count: filtered.length, maxP,
+      selesai: maxP > 0 && filtered.length >= maxP
     };
   });
 
@@ -1412,6 +1458,7 @@ function renderLaporanAnak() {
 
   const activeIdx = levelData.findIndex(l => !l.selesai);
   const activeLevel = activeIdx >= 0 ? activeIdx : levelData.length - 1;
+  const rataBintang = nilaiUnik.length > 0 ? (grandTotal / nilaiUnik.length).toFixed(1) : 0;
 
   headerBox.innerHTML = `
     <div class="bg-white rounded-3xl border border-slate-100 shadow-soft overflow-hidden">
@@ -1430,13 +1477,14 @@ function renderLaporanAnak() {
         </div>
         <div class="grid grid-cols-2 gap-3">
           <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
-            <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Progress</p>
-            <p class="text-2xl font-bold mt-0.5">${persenAkhir}%</p>
-            <p class="text-[9px] text-white/60">${nilaiUnik.length}/${globalSilabus.length} pertemuan</p>
+            <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Total Bintang</p>
+            <p class="text-2xl font-bold mt-0.5">${grandTotal}<span class="text-sm font-normal text-white/70">/${totalMaxSkor}</span></p>
+            <p class="text-[10px] text-white/70 mt-0.5">${renderBintangHtml(rataBintang)} rata-rata</p>
           </div>
           <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
-            <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Total Skor</p>
-            <p class="text-2xl font-bold mt-0.5">${grandTotal}<span class="text-sm font-normal text-white/70">/${totalMaxSkor}</span></p>
+            <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Progress</p>
+            <p class="text-2xl font-bold mt-0.5">${persenAkhir}%</p>
+            <p class="text-[9px] text-white/60">${nilaiUnik.length}/${silabusUsia.length} pertemuan</p>
           </div>
         </div>
       </div>
@@ -1475,7 +1523,7 @@ function renderLaporanAnak() {
                   </span>
                   <span class="text-xs font-bold ${act ? 'text-purple-700' : 'text-slate-700'}">${esc(lv.level)}</span>
                 </div>
-                <span class="text-[10px] font-bold ${done ? 'text-emerald-600' : 'text-slate-500'}">${lv.total}/${lv.max}</span>
+                <span class="text-[10px] font-bold ${done ? 'text-emerald-600' : 'text-slate-500'}">${lv.total}⭐/${lv.max}</span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2 mb-1">
                 <div class="${done ? 'bg-emerald-500' : 'gradient-purple'} rounded-full h-2 transition-all duration-500" style="width: ${p}%"></div>
@@ -1486,52 +1534,34 @@ function renderLaporanAnak() {
       </div>
     </div>
 
-    ${asesmenObj ? `
-      <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
-        <div class="flex items-center space-x-2 mb-3">
-          <span class="text-lg">🤖</span>
-          <h3 class="text-sm font-bold text-slate-900">Analisis AI Asesmen</h3>
-        </div>
-        <div class="flex items-center space-x-2 mb-3">
-          <span class="text-xs font-bold text-purple-600">${asesmenObj.total_skor}/30</span>
-          <span class="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded-full font-bold">${asesmenObj.persentase}</span>
-        </div>
-        <p class="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-3 rounded-xl">${esc(asesmenObj.rekomendasi_ai)}</p>
-      </div>` : ''}
-
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
-      <h3 class="text-sm font-bold text-slate-900 mb-4">📈 Grafik Kemajuan</h3>
+      <h3 class="text-sm font-bold text-slate-900 mb-4">📈 Grafik Bintang per Pertemuan</h3>
       <div class="relative h-52 w-full"><canvas id="progressChart"></canvas></div>
     </div>
 
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-bold text-slate-900">📝 Riwayat</h3>
+        <h3 class="text-sm font-bold text-slate-900">📝 Riwayat Bintang</h3>
         <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">${nilaiUnik.length}</span>
       </div>
       <div class="space-y-2.5 max-h-96 overflow-y-auto">
-        ${nilaiUnik.length > 0 ? nilaiUnik.sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan)).map(n => {
-          const s1 = getSkor(1, n), s2 = getSkor(2, n), total = s1 + s2;
-          const warna = total >= 7 ? 'text-emerald-600 bg-emerald-50' : total >= 5 ? 'text-blue-600 bg-blue-50' : total >= 3 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+        ${nilaiUnik.length > 0 ? nilaiUnik.sort((a,b) => parseInt(String(a.pertemuan).replace(/\D/g,"")) - parseInt(String(b.pertemuan).replace(/\D/g,""))).map(n => {
+          const s1 = getSkor(1, n);
+          const warna = s1 >= 4 ? 'text-emerald-600 bg-emerald-50' : s1 >= 3 ? 'text-blue-600 bg-blue-50' : s1 >= 2 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
           return `
             <div class="p-3.5 bg-slate-50 rounded-2xl">
               <div class="flex justify-between items-start mb-2">
                 <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold text-slate-800">Pertemuan ${n.pertemuan}</p>
+                  <p class="text-xs font-bold text-slate-800">Pertemuan ${String(n.pertemuan).replace(/\D/g,"")}</p>
                   <p class="text-[10px] text-slate-400">${fmtTanggal(n.timestamp)}</p>
                 </div>
-                <span class="text-[11px] font-bold px-2 py-0.5 rounded-lg ${warna}">${total}/8</span>
-              </div>
-              <div class="space-y-1">
-                <div class="flex justify-between text-[10px]">
-                  <span class="text-slate-500 truncate pr-2">${esc(getNama(1, n))}</span>
-                  <span class="font-bold text-purple-600 shrink-0">${s1}/4</span>
-                </div>
-                <div class="flex justify-between text-[10px]">
-                  <span class="text-slate-500 truncate pr-2">${esc(getNama(2, n))}</span>
-                  <span class="font-bold text-purple-600 shrink-0">${s2}/4</span>
+                <div class="text-right shrink-0">
+                  <div style="color:#f59e0b;font-size:1.1rem;letter-spacing:0.05rem">${renderBintangHtml(s1)}</div>
+                  <p class="text-[10px] font-bold ${warna} px-2 py-0.5 rounded-lg mt-0.5">${s1}/5</p>
                 </div>
               </div>
+              <p class="text-[10px] text-slate-500 truncate">${esc(getNama(1, n))}</p>
+              ${getCatatan(1, n) ? `<p class="text-[10px] text-slate-500 italic mt-1">"${esc(getCatatan(1, n))}"</p>` : ''}
             </div>`;
         }).join('') : `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada nilai.</p>`}
       </div>
@@ -1544,9 +1574,9 @@ function renderChart(nilaiList) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (myChartInstance) myChartInstance.destroy();
-  const sorted = [...nilaiList].sort((a, b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
-  const labels = sorted.map(n => `P${n.pertemuan}`);
-  const data = sorted.map(n => getSkor(1, n) + getSkor(2, n));
+  const sorted = [...nilaiList].sort((a, b) => parseInt(String(a.pertemuan).replace(/\D/g,"")) - parseInt(String(b.pertemuan).replace(/\D/g,"")));
+  const labels = sorted.map(n => `P${String(n.pertemuan).replace(/\D/g,"")}`);
+  const data = sorted.map(n => getSkor(1, n));
   myChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
@@ -1555,15 +1585,18 @@ function renderChart(nilaiList) {
         data: data.length > 0 ? data : [0],
         borderColor: '#7c3aed', backgroundColor: 'rgba(124, 58, 237, 0.12)',
         borderWidth: 3, pointBackgroundColor: '#7c3aed',
-        pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 4,
+        pointBorderColor: '#fff', pointBorderWidth: 2, pointRadius: 5,
         fill: true, tension: 0.4
       }]
     },
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: false } },
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => `${"⭐".repeat(c.parsed.y)} (${c.parsed.y}/5)` } }
+      },
       scales: {
-        y: { min: 0, max: 8, ticks: { stepSize: 2, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+        y: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
         x: { grid: { display: false }, ticks: { font: { size: 10 } } }
       }
     }
@@ -1625,7 +1658,7 @@ async function uploadFoto() {
 }
 
 // ============================================================
-// SERTIFIKAT PER LEVEL
+// SERTIFIKAT
 // ============================================================
 async function loadSertifikatList() {
   const siswaId = currentLoggedInUser.siswa_id;
@@ -1635,27 +1668,28 @@ async function loadSertifikatList() {
   containerEl.classList.add("hidden");
   containerEl.innerHTML = "";
 
-  // Hitung status tiap level dari data lokal (globalNilai + globalLevel)
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
+  const silabusUsia = getSilabusByUsia(siswa.usia);
   const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(siswaId));
   const um = new Map();
   nilaiSiswa.forEach(n => {
-    const k = String(n.pertemuan);
+    const k = String(n.pertemuan).replace(/\D/g, "");
     if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
   });
   const pertemuanDinilai = new Set(Array.from(um.keys()));
 
   const statusLevel = globalLevel.map(lv => {
     const min = parseInt(lv.pertemuan_min), max = parseInt(lv.pertemuan_max);
-    let selesai = 0, total = max - min + 1;
-    for (let p = min; p <= max; p++) {
-      if (pertemuanDinilai.has(p)) selesai++;
-    }
+    const silabusLevel = silabusUsia.filter(s => parseInt(s.pertemuan) >= min && parseInt(s.pertemuan) <= max);
+    let selesai = 0;
+    silabusLevel.forEach(s => { if (pertemuanDinilai.has(String(s.pertemuan))) selesai++; });
+    const total = silabusLevel.length;
     return {
       nama: lv.level, icon: lv.icon || "📘", warna: lv.warna || "#7c3aed",
       deskripsi: lv.deskripsi || "", min, max,
       selesai, total,
       persen: total > 0 ? ((selesai / total) * 100).toFixed(0) : 0,
-      tersedia: selesai >= total
+      tersedia: total > 0 && selesai >= total
     };
   });
 
@@ -1739,7 +1773,6 @@ async function renderSertifikat(data) {
     ? `<img src="${esc(fotoUrl)}" alt="Foto" style="width: 30mm; height: 30mm; border-radius: 50%; object-fit: cover; border: 1.5mm solid ${predikatColor}; box-shadow: 0 4px 12px ${predikatColor}40;" onerror="this.style.display='none'">`
     : `<div style="width: 30mm; height: 30mm; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; font-size: 12mm; color: white; font-weight: 900; border: 1.5mm solid ${predikatColor}; box-shadow: 0 4px 12px ${predikatColor}40;">${esc(s.nama).charAt(0).toUpperCase()}</div>`;
 
-  // HALAMAN 1: SERTIFIKAT UTAMA
   const page1 = `
     <div class="sertifikat-page">
       <div class="cert-border-outer" style="border-color: ${lv.warna};"></div>
@@ -1788,7 +1821,7 @@ async function renderSertifikat(data) {
             </span>
           </div>
           <div style="font-size: 3.2mm; color: #475569;">
-            dengan total perolehan nilai <b style="color: ${lv.warna};">${data.grandTotal}/${data.skorMaksimalLevel}</b> (${data.persenAkhir}%)
+            dengan total perolehan <b style="color: ${lv.warna};">${data.grandTotal} ⭐</b> dari maksimal ${data.skorMaksimalLevel} ⭐ (${data.persenAkhir}%)
           </div>
         </div>
 
@@ -1821,7 +1854,6 @@ async function renderSertifikat(data) {
       </div>
     </div>`;
 
-  // HALAMAN 2: TRANSKRIP + GRAFIK
   const detailNilai = data.detailNilai;
   const chartLabels = detailNilai.map(n => `P${n.pertemuan}`);
   const chartData = detailNilai.map(n => n.total);
@@ -1836,7 +1868,6 @@ async function renderSertifikat(data) {
       <div class="cert-corner br" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});"></div>
 
       <div style="position: absolute; inset: 16mm; display: flex; flex-direction: column;">
-
         <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 1mm solid ${predikatColor}; padding-bottom: 2.5mm; margin-bottom: 3mm;">
           <div style="display: flex; align-items: center; gap: 3mm;">
             <div style="width: 12mm; height: 12mm; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-radius: 3mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 6mm;">${lv.icon}</div>
@@ -1852,7 +1883,6 @@ async function renderSertifikat(data) {
         </div>
 
         <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; flex: 1; overflow: hidden;">
-          <!-- KIRI: GRAFIK -->
           <div style="display: flex; flex-direction: column;">
             <div style="font-size: 3mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.5mm solid #e2e8f0;">📈 GRAFIK PERKEMBANGAN</div>
             <div style="background: #fafafe; border: 0.5mm solid #e2e8f0; border-radius: 2mm; padding: 2mm; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 80mm;">
@@ -1860,20 +1890,19 @@ async function renderSertifikat(data) {
             </div>
             <div style="margin-top: 2mm; background: linear-gradient(135deg, ${predikatColor}15, ${predikatColor}05); border-left: 1mm solid ${predikatColor}; padding: 2mm; border-radius: 1mm;">
               <div style="font-size: 2.5mm; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Perolehan</div>
-              <div style="font-size: 6mm; font-weight: 900; color: ${predikatColor};">${data.grandTotal}<span style="font-size: 3mm; color: #94a3b8;">/${data.skorMaksimalLevel}</span> <span style="font-size: 3mm; color: #64748b;">(${data.persenAkhir}%)</span></div>
+              <div style="font-size: 6mm; font-weight: 900; color: ${predikatColor};">${data.grandTotal} ⭐<span style="font-size: 3mm; color: #94a3b8;">/${data.skorMaksimalLevel} ⭐</span> <span style="font-size: 3mm; color: #64748b;">(${data.persenAkhir}%)</span></div>
             </div>
           </div>
 
-          <!-- KANAN: TABEL -->
           <div style="display: flex; flex-direction: column; overflow: hidden;">
-            <div style="font-size: 3mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.5mm solid #e2e8f0;">📋 RINCIAN NILAI</div>
+            <div style="font-size: 3mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.5mm solid #e2e8f0;">📋 RINCIAN BINTANG</div>
             <div style="overflow-y: auto; flex: 1;">
               <table style="width: 100%; border-collapse: collapse; font-size: 2.4mm;">
                 <thead>
                   <tr style="background: #f1f5f9;">
                     <th style="padding: 1.5mm; text-align: center; color: #475569; font-weight: 700; width: 12%;">P</th>
                     <th style="padding: 1.5mm; text-align: left; color: #475569; font-weight: 700;">Materi</th>
-                    <th style="padding: 1.5mm; text-align: center; color: #475569; font-weight: 700; width: 15%;">Skor</th>
+                    <th style="padding: 1.5mm; text-align: center; color: #475569; font-weight: 700; width: 25%;">Bintang</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1881,20 +1910,20 @@ async function renderSertifikat(data) {
                     <tr style="border-bottom: 0.2mm solid #e2e8f0;">
                       <td style="padding: 1.2mm; text-align: center; font-weight: 700; color: ${lv.warna};">${n.pertemuan}</td>
                       <td style="padding: 1.2mm; color: #334155;">${esc(n.judul)}</td>
-                      <td style="padding: 1.2mm; text-align: center; font-weight: 700; color: ${n.total >= 7 ? '#10b981' : n.total >= 5 ? '#3b82f6' : n.total >= 3 ? '#f59e0b' : '#f43f5e'};">${n.total}/8</td>
+                      <td style="padding: 1.2mm; text-align: center; color: #f59e0b; font-size: 3mm;">${renderBintangHtml(n.total)}</td>
                     </tr>`).join('')}
                 </tbody>
               </table>
             </div>
             <div style="margin-top: 2mm; background: #f8fafc; border-radius: 1mm; padding: 2mm; display: flex; justify-content: space-between; font-size: 2.5mm; color: #475569;">
-              <span>Rata-rata per pertemuan</span>
-              <span style="font-weight: 900; color: ${lv.warna};">${detailNilai.length > 0 ? (data.grandTotal/detailNilai.length).toFixed(1) : 0}/8</span>
+              <span>Rata-rata bintang per pertemuan</span>
+              <span style="font-weight: 900; color: ${lv.warna};">${detailNilai.length > 0 ? (data.grandTotal/detailNilai.length).toFixed(1) : 0} ⭐</span>
             </div>
           </div>
         </div>
 
         <div style="margin-top: 2mm; border-top: 0.5mm solid #e2e8f0; padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 2.2mm; color: #94a3b8;">
-          <span>${data.totalPertemuan}/${data.totalPertemuanLevel} pertemuan • Total: <b style="color: ${lv.warna};">${data.grandTotal}/${data.skorMaksimalLevel}</b> (${data.persenAkhir}%)</span>
+          <span>${data.totalPertemuan}/${data.totalPertemuanLevel} pertemuan • Total: <b style="color: ${lv.warna};">${data.grandTotal}⭐/${data.skorMaksimalLevel}⭐</b> (${data.persenAkhir}%)</span>
           <span>Sertifikat No: ${certNo}</span>
         </div>
       </div>
@@ -1919,7 +1948,7 @@ async function renderSertifikat(data) {
         data: {
           labels: chartLabels,
           datasets: [{
-            label: 'Skor',
+            label: 'Bintang',
             data: chartData,
             borderColor: lv.warna,
             backgroundColor: lv.warna + '20',
@@ -1935,10 +1964,10 @@ async function renderSertifikat(data) {
           responsive: true, maintainAspectRatio: false,
           plugins: {
             legend: { display: false },
-            tooltip: { callbacks: { label: (c) => `Skor: ${c.parsed.y}/8` } }
+            tooltip: { callbacks: { label: (c) => `Bintang: ${c.parsed.y}/5` } }
           },
           scales: {
-            y: { min: 0, max: 8, ticks: { stepSize: 2, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
+            y: { min: 0, max: 5, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
             x: { grid: { display: false }, ticks: { font: { size: 10 } } }
           }
         }
@@ -1958,7 +1987,7 @@ async function downloadSertifikat() {
   setTimeout(() => window.print(), 300);
 }
 
-console.log("RoboClass Manager loaded");
+console.log("RoboClass Manager v2 loaded");
 </script>
 </body>
 </html>
