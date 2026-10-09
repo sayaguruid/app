@@ -1,7 +1,15 @@
 // ============================================================
 // KONFIGURASI
 // ============================================================
-const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuHX4uIl2CYFOj_ggLUMtGry4twjJXzOObvXvkbnXYc-iea4e1Dd12MesDnjv3FlWfJQ/exec"; // ← GANTI URL ANDA
+const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzuHX4uIl2CYFOj_ggLUMtGry4twjJXzOObvXvkbnXYc-iea4e1Dd12MesDnjv3FlWfJQ/exec"; // ← GANTI
+
+const DOMAIN_ORDER = [
+  "Fine Motor Skills",
+  "Focus & Attention",
+  "Problem Solving & Logical Thinking",
+  "Creativity",
+  "Independence"
+];
 
 // ============================================================
 // POPUP & TOAST
@@ -91,6 +99,7 @@ let globalSiswa = [];
 let globalNilai = [];
 let globalAkun = [];
 let globalRubrik = [];
+let globalMateri = [];
 let globalLevel = [];
 let currentLoggedInUser = null;
 let myChartInstance = null;
@@ -98,6 +107,8 @@ let selectedSiswaId = "";
 let selectedPertemuan = null;
 let editingRubrikNo = null;
 let editingRubrikUsia = null;
+let editingMateriPertemuan = null;
+let editingMateriUsia = null;
 let pendingFotoBase64 = null;
 let pendingFotoMime = null;
 let laporanData = null;
@@ -120,10 +131,8 @@ function fmtTanggal(ts) {
 }
 function renderBintangHtml(skor) {
   const s = Math.max(0, Math.min(4, parseInt(skor) || 0));
-  let html = '<span style="color:#f59e0b;font-size:1.1rem;letter-spacing:0.05rem">';
-  for (let i = 1; i <= 4; i++) {
-    html += i <= s ? '★' : '<span style="color:#e2e8f0">★</span>';
-  }
+  let html = '<span style="color:#f59e0b;font-size:1rem;letter-spacing:0.05rem">';
+  for (let i = 1; i <= 4; i++) html += i <= s ? '★' : '<span style="color:#e2e8f0">★</span>';
   html += '</span>';
   return html;
 }
@@ -155,10 +164,9 @@ function getRubrikByUsia(usia) {
 }
 
 // ============================================================
-// LOAD DATA — harus selesai dulu sebelum login bisa
+// LOAD DATA
 // ============================================================
 window.onload = function() {
-  // Fetch data dulu, baru tampilkan login setelah selesai
   fetchDatabaseData().finally(() => {
     const splash = document.getElementById("splash");
     splash.style.transition = "opacity 0.4s";
@@ -188,6 +196,7 @@ function fetchDatabaseData() {
       globalNilai   = d.nilai    || [];
       globalAkun    = d.akun     || [];
       globalRubrik  = (d.rubrik  || []).sort((a,b) => parseInt(a.no) - parseInt(b.no));
+      globalMateri  = (d.materi  || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
       globalLevel   = (d.level   || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
       dataReady = true;
       if (statusEl) statusEl.innerText = "✅ Sistem siap. Silakan login.";
@@ -197,7 +206,7 @@ function fetchDatabaseData() {
     })
     .catch(err => {
       console.error("Fetch error:", err);
-      if (statusEl) statusEl.innerText = "❌ Gagal memuat: " + err.message + " — coba refresh.";
+      if (statusEl) statusEl.innerText = "❌ Gagal memuat: " + err.message;
       if (loginBtn) { loginBtn.disabled = true; loginBtn.innerText = "Gagal memuat"; }
     });
 }
@@ -217,13 +226,11 @@ function refreshData(callback) {
       globalNilai    = d.nilai    || [];
       globalSiswa    = (d.siswa || []).map(s => ({...s, siswa_id: String(s.siswa_id || "")}));
       globalRubrik   = (d.rubrik  || []).sort((a,b) => parseInt(a.no) - parseInt(b.no));
+      globalMateri   = (d.materi  || []).sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
       globalLevel    = (d.level   || []).sort((a,b) => parseInt(a.pertemuan_min) - parseInt(b.pertemuan_min));
       if (callback) callback();
     })
-    .catch(err => {
-      console.error("Refresh error:", err);
-      showToast("Gagal refresh data", "error");
-    });
+    .catch(err => { console.error("Refresh error:", err); showToast("Gagal refresh data", "error"); });
 }
 
 // ============================================================
@@ -231,10 +238,7 @@ function refreshData(callback) {
 // ============================================================
 async function handleLogin(e) {
   e.preventDefault();
-  if (!dataReady) { 
-    await showPopup("warning", "Data Belum Siap", "Sistem masih memuat data. Mohon tunggu sebentar."); 
-    return; 
-  }
+  if (!dataReady) { await showPopup("warning", "Data Belum Siap", "Sistem masih memuat data."); return; }
   const u = document.getElementById("login-username").value.trim();
   const p = document.getElementById("login-password").value.trim();
   const found = globalAkun.find(acc => String(acc.username).toLowerCase() === u.toLowerCase() && String(acc.password) === p);
@@ -277,6 +281,7 @@ function renderBottomNav(role) {
     admin: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>`,
     guru: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>`,
     silabus: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>`,
+    materi: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 014 4v14a3 3 0 00-3-3H2z"/><path d="M22 3h-6a4 4 0 00-4 4v14a3 3 0 013-3h7z"/></svg>`,
     ortu: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>`,
     sertifikat: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>`,
     capaian: `<svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M18 17V9M13 17V5M8 17v-3"/></svg>`
@@ -285,17 +290,20 @@ function renderBottomNav(role) {
   let items = [];
   if (role === "superadmin") items = [
     { key: 'dashboard', icon: icons.dashboard, label: 'Dashboard' },
+    { key: 'materi', icon: icons.materi, label: 'Materi' },
     { key: 'silabus', icon: icons.silabus, label: 'Rubrik' },
     { key: 'admin', icon: icons.admin, label: 'Siswa' }
   ];
   else if (role === "admin") items = [
     { key: 'admin', icon: icons.admin, label: 'Siswa' },
     { key: 'dashboard', icon: icons.dashboard, label: 'Dashboard' },
+    { key: 'materi', icon: icons.materi, label: 'Materi' },
     { key: 'silabus', icon: icons.silabus, label: 'Rubrik' }
   ];
   else if (role === "guru") items = [
     { key: 'guru', icon: icons.guru, label: 'Nilai' },
     { key: 'dashboard-guru', icon: icons.capaian, label: 'Capaian' },
+    { key: 'materi', icon: icons.materi, label: 'Materi' },
     { key: 'silabus', icon: icons.silabus, label: 'Rubrik' }
   ];
   else if (role === "ortu") items = [
@@ -304,7 +312,7 @@ function renderBottomNav(role) {
   ];
 
   nav.innerHTML = `<div class="flex justify-around items-center pt-3 pb-2">${items.map(it => `
-    <button onclick="switchTab('${it.key}')" id="nav-${it.key}" class="nav-btn flex flex-col items-center space-y-1 px-5 py-1 rounded-xl transition-all text-slate-400">
+    <button onclick="switchTab('${it.key}')" id="nav-${it.key}" class="nav-btn flex flex-col items-center space-y-1 px-4 py-1 rounded-xl transition-all text-slate-400">
       ${it.icon}
       <span class="text-[10px] font-bold">${it.label}</span>
     </button>`).join('')}</div>`;
@@ -318,13 +326,14 @@ function switchTab(key) {
   const btn = document.getElementById(`nav-${key}`);
   if (btn) { btn.classList.add('nav-active'); btn.classList.remove('text-slate-400'); }
   if (key === 'silabus') renderRubrikList();
+  if (key === 'materi') renderMateriList();
   if (key === 'dashboard') renderDashboard();
   if (key === 'dashboard-guru') renderDashboardGuru();
   if (key === 'sertifikat') loadLaporanList();
 }
 
 // ============================================================
-// ADMIN
+// ADMIN - Siswa
 // ============================================================
 function populateAdminList() {
   const list = document.getElementById("list-siswa-mobile");
@@ -363,7 +372,7 @@ async function tambahSiswa(e) {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1200));
     loading.close();
-    await showPopup("success", "Berhasil! 🎉", "Siswa baru & akun orang tua berhasil ditambahkan.");
+    await showPopup("success", "Berhasil! 🎉", "Siswa baru berhasil ditambahkan.");
     await refreshData(populateAdminList);
     showToast("Siswa berhasil ditambahkan", "success");
     e.target.reset();
@@ -375,7 +384,7 @@ async function tambahSiswa(e) {
 }
 
 // ============================================================
-// GURU - PENILAIAN (Rubrik 4 Bintang)
+// GURU - PENILAIAN 5 DOMAIN SEKALIGUS
 // ============================================================
 function populateDropdownSiswaGuru() {
   const sel = document.getElementById("guru-pilih-siswa");
@@ -402,13 +411,15 @@ function onPilihSiswa() {
   if (!siswa) return;
 
   const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(selectedSiswaId));
-  const um = new Map();
+  
+  // Set pertemuan yang sudah dinilai lengkap (min 1 domain dinilai = dianggap selesai)
+  const pertemuanDinilai = new Set();
   nilaiSiswa.forEach(n => {
     const k = String(n.pertemuan).replace(/\D/g, "");
-    if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
+    if (k) pertemuanDinilai.add(k);
   });
-  const pertemuanSudahDinilai = new Set(Array.from(um.keys()));
 
+  // Ambil daftar pertemuan dari level siswa
   const levelSiswa = globalLevel.find(l => l.level === siswa.level_saat_ini);
   let allPertemuan = [];
   if (levelSiswa) {
@@ -417,7 +428,7 @@ function onPilihSiswa() {
     allPertemuan = Array.from({length: 12}, (_, i) => i + 1);
   }
   const totalPertemuan = allPertemuan.length;
-  const totalDinilai = allPertemuan.filter(p => pertemuanSudahDinilai.has(String(p))).length;
+  const totalDinilai = allPertemuan.filter(p => pertemuanDinilai.has(String(p))).length;
 
   infoBox.innerHTML = `
     <div class="flex items-center space-x-4">
@@ -436,23 +447,26 @@ function onPilihSiswa() {
       <div class="w-full bg-white/20 rounded-full h-2">
         <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${totalPertemuan > 0 ? (totalDinilai/totalPertemuan)*100 : 0}%"></div>
       </div>
-      <p class="text-[10px] text-white/70">📌 Rubrik sesuai usia ${siswa.usia} tahun</p>
+      <p class="text-[10px] text-white/70">📌 5 domain dinilai sekaligus per pertemuan</p>
     </div>`;
   infoBox.classList.remove("hidden");
 
-  const available = allPertemuan.filter(p => !pertemuanSudahDinilai.has(String(p)));
+  const available = allPertemuan.filter(p => !pertemuanDinilai.has(String(p)));
 
   stepPertemuan.innerHTML = `
     <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Pilih Pertemuan (Usia ${siswa.usia} Thn)</label>
     <select id="guru-pilih-pertemuan" onchange="onPilihPertemuan()" class="w-full mt-1.5 px-3 py-3.5 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none font-medium">
       ${available.length === 0
         ? `<option value="">🎉 Semua pertemuan sudah dinilai!</option>`
-        : `<option value="">-- Pilih Pertemuan --</option>` + available.map(p => `<option value="${p}">Pertemuan ${p}</option>`).join('')}
+        : `<option value="">-- Pilih Pertemuan --</option>` + available.map(p => {
+            const materi = globalMateri.find(m => String(m.pertemuan) === String(p) && normalisasiUsia(m.usia) === normalisasiUsia(siswa.usia));
+            return `<option value="${p}">P${p}${materi ? ' - ' + esc(materi.judul_materi) : ''}</option>`;
+          }).join('')}
     </select>`;
   stepPertemuan.classList.remove("hidden");
   formBox.classList.add("hidden");
   formBox.innerHTML = "";
-  renderRiwayatPenilaian(Array.from(um.values()));
+  renderRiwayatPenilaian(nilaiSiswa);
   riwayatBox.classList.remove("hidden");
 }
 
@@ -462,201 +476,159 @@ function onPilihPertemuan() {
   if (!val) { formBox.classList.add("hidden"); formBox.innerHTML = ""; selectedPertemuan = null; return; }
   selectedPertemuan = val;
   const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
-  const existing = globalNilai.find(n => 
-    String(n.siswa_id) === String(selectedSiswaId) && 
-    String(n.pertemuan).replace(/\D/g,"") === String(val)
-  );
-  renderFormPenilaian(siswa, existing);
+  const materi = globalMateri.find(m => String(m.pertemuan) === String(val) && normalisasiUsia(m.usia) === normalisasiUsia(siswa.usia));
+  renderFormPenilaian5Domain(siswa, val, materi);
   formBox.classList.remove("hidden");
   formBox.classList.add("fade-in");
 }
 
-function renderFormPenilaian(siswa, existing) {
+function renderFormPenilaian5Domain(siswa, pertemuan, materi) {
   const formBox = document.getElementById("guru-form-penilaian");
-  const isEdit = !!existing;
   const rubrikUsia = getRubrikByUsia(siswa.usia);
-
+  
   if (rubrikUsia.length === 0) {
     formBox.innerHTML = `<div class="bg-amber-50 border-l-4 border-amber-500 p-4 rounded-xl">
-      <p class="text-xs text-amber-800 font-semibold">⚠️ Rubrik untuk usia ${siswa.usia} tahun belum tersedia. Silakan tambahkan di menu Rubrik.</p>
+      <p class="text-xs text-amber-800 font-semibold">⚠️ Rubrik untuk usia ${siswa.usia} tahun belum tersedia.</p>
     </div>`;
     return;
   }
 
-  // Daftar domain unik
-  const domains = [...new Set(rubrikUsia.map(r => r.domain))];
-  const existingDomain = isEdit ? existing.domain : "";
-  const existingIndikator = isEdit ? existing.indikator : "";
-  const existingSkor = isEdit ? existing.skor : 0;
-  const existingCatatan = isEdit ? (existing.catatan || "") : "";
+  // Ambil nilai existing per domain
+  const nilaiExisting = {};
+  globalNilai.filter(n => String(n.siswa_id) === String(siswa.siswa_id) && String(n.pertemuan).replace(/\D/g,"") === String(pertemuan))
+    .forEach(n => {
+      const existing = nilaiExisting[n.domain];
+      if (!existing || new Date(n.timestamp) > new Date(existing.timestamp)) nilaiExisting[n.domain] = n;
+    });
+
+  const domainCards = DOMAIN_ORDER.map((dom, idx) => {
+    const rubrikDom = rubrikUsia.filter(r => r.domain === dom);
+    if (rubrikDom.length === 0) return ''; // skip jika tidak ada rubrik
+
+    // Ambil indikator pertama (asumsi 1 indikator per domain)
+    const rubrik = rubrikDom[0];
+    const existing = nilaiExisting[dom];
+    const skorAwal = existing ? existing.skor : 0;
+    const catatanAwal = existing ? (existing.catatan || "") : "";
+    const indikatorAwal = existing ? existing.indikator : rubrik.indikator;
+
+    return `
+      <div class="domain-card bg-white p-4 rounded-2xl border-2 border-slate-100 space-y-3" data-domain="${esc(dom)}">
+        <div class="flex items-start space-x-2.5">
+          <div class="w-8 h-8 gradient-purple rounded-xl flex items-center justify-center text-white font-bold text-xs shrink-0">${idx + 1}</div>
+          <div class="flex-1 min-w-0">
+            <h4 class="text-sm font-bold text-slate-900">${esc(dom)}</h4>
+            <p class="text-[10px] text-slate-500 mt-0.5">${esc(rubrik.indikator)}</p>
+          </div>
+        </div>
+
+        <div class="bg-purple-50 border-l-4 border-purple-500 p-2.5 rounded-lg">
+          <p class="text-[9px] font-bold text-purple-700 uppercase tracking-wider mb-0.5">📌 Contoh Perilaku</p>
+          <p class="text-[10px] text-slate-700 leading-relaxed">${esc(rubrik.contoh_perilaku)}</p>
+        </div>
+
+        <div class="space-y-1.5">
+          ${[1,2,3,4].map(level => {
+            const desc = rubrik[`star_${level}`];
+            const labels = {1:"Perlu Banyak Bantuan",2:"Dengan Bimbingan",3:"Mandiri",4:"Berkembang Sangat Baik"};
+            const colors = {1:"text-rose-600",2:"text-amber-600",3:"text-blue-600",4:"text-emerald-600"};
+            const checked = skorAwal === level;
+            return `
+              <label class="block bg-slate-50 border-2 ${checked ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-2.5 rounded-xl cursor-pointer active:scale-[0.99] transition-all">
+                <div class="flex items-start space-x-2">
+                  <input type="radio" name="skor_${idx}" value="${level}" data-domain="${esc(dom)}" ${checked ? 'checked' : ''} class="mt-0.5">
+                  <div class="flex-1">
+                    <div class="flex items-center space-x-1.5 mb-0.5 flex-wrap">
+                      <span class="text-xs" style="color:#f59e0b">${"★".repeat(level)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-level)}</span>
+                      <span class="text-[9px] font-bold ${colors[level]} uppercase tracking-wider">Star ${level} - ${labels[level]}</span>
+                    </div>
+                    <p class="text-[10px] text-slate-600 leading-relaxed">${esc(desc || "-")}</p>
+                  </div>
+                </div>
+              </label>`;
+          }).join('')}
+        </div>
+
+        <input type="text" name="catatan_${idx}" data-domain="${esc(dom)}" value="${esc(catatanAwal)}" placeholder="Catatan (opsional)" 
+               class="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-[11px] focus:border-purple-500 focus:bg-white focus:outline-none">
+      </div>`;
+  }).join('');
 
   formBox.innerHTML = `
-    <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft space-y-5">
-      <div class="border-b border-slate-100 pb-3">
+    <div class="space-y-4">
+      <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft">
         <div class="flex items-center justify-between mb-2">
-          <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Pertemuan ${selectedPertemuan}</span>
-          <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">Usia ${siswa.usia} Thn</span>
+          <span class="text-[10px] font-bold text-purple-600 uppercase tracking-wider">Pertemuan ${pertemuan}</span>
+          <span class="text-[10px] bg-purple-50 text-purple-700 px-2.5 py-1 rounded-full font-bold">5 Domain</span>
         </div>
-        <h3 class="text-base font-bold text-slate-900">Penilaian Rubrik Perkembangan</h3>
-        <p class="text-xs text-slate-500 mt-1">Pilih domain & indikator, lalu beri bintang sesuai capaian anak</p>
+        ${materi ? `
+          <h3 class="text-base font-bold text-slate-900">${esc(materi.judul_materi)}</h3>
+          <p class="text-xs text-slate-500 mt-1">${esc(materi.deskripsi)}</p>
+        ` : `<p class="text-xs text-slate-400 italic">Materi belum diisi untuk pertemuan ini</p>`}
       </div>
 
-      <div class="space-y-4">
-        <div>
-          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Domain</label>
-          <select id="p_domain" onchange="onPilihDomain()" class="w-full mt-1.5 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none font-medium">
-            <option value="">-- Pilih Domain --</option>
-            ${domains.map(d => `<option value="${esc(d)}" ${existingDomain === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}
-          </select>
-        </div>
+      <div class="space-y-3">${domainCards}</div>
 
-        <div id="p_indikator_wrapper" class="hidden">
-          <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Indikator</label>
-          <select id="p_indikator" onchange="onPilihIndikator()" class="w-full mt-1.5 px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-sm focus:border-purple-500 focus:bg-white focus:outline-none font-medium">
-            <option value="">-- Pilih Indikator --</option>
-          </select>
-        </div>
-
-        <div id="p_detail_wrapper" class="hidden space-y-4">
-          <div class="bg-purple-50 border-l-4 border-purple-500 p-3 rounded-xl">
-            <p class="text-[10px] font-bold text-purple-700 uppercase tracking-wider mb-1">📌 Contoh Perilaku yang Diamati</p>
-            <p id="p_contoh" class="text-[11px] text-slate-700 leading-relaxed"></p>
-          </div>
-
-          <div class="space-y-2">
-            <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-1">Pilih Capaian (4 Level Bintang)</p>
-            <div id="p_skor_options" class="space-y-2"></div>
-          </div>
-
-          <input type="text" id="p_catatan" value="${esc(existingCatatan)}" placeholder="Catatan observasi (opsional)" class="w-full px-3 py-3 bg-slate-50 border-2 border-slate-100 rounded-2xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
-        </div>
-      </div>
-
-      <button onclick="submitPenilaian()" class="${isEdit ? 'bg-amber-500 shadow-amber-200' : 'gradient-purple shadow-purple-200'} w-full text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg">
-        ${isEdit ? '💾 Update Penilaian' : '📤 Simpan Penilaian'}
+      <button onclick="submitPenilaianBatch()" class="w-full gradient-purple text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200 sticky bottom-2">
+        📤 Simpan Semua Penilaian (5 Domain)
       </button>
     </div>`;
 
-  // Auto-fill jika edit
-  if (isEdit && existingDomain) {
-    onPilihDomain();
-    if (existingIndikator) {
-      document.getElementById("p_indikator").value = existingIndikator;
-      onPilihIndikator();
-      const radio = document.querySelector(`input[name="p_skor"][value="${existingSkor}"]`);
-      if (radio) {
-        radio.checked = true;
-        radio.dispatchEvent(new Event('change'));
-      }
-    }
-  }
-}
-
-function onPilihDomain() {
-  const domain = document.getElementById("p_domain").value;
-  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
-  const wrapper = document.getElementById("p_indikator_wrapper");
-  const detailWrapper = document.getElementById("p_detail_wrapper");
-  
-  if (!domain) { wrapper.classList.add("hidden"); detailWrapper.classList.add("hidden"); return; }
-
-  const rubrikDomain = getRubrikByUsia(siswa.usia).filter(r => r.domain === domain);
-
-  const selIndikator = document.getElementById("p_indikator");
-  selIndikator.innerHTML = `<option value="">-- Pilih Indikator --</option>` +
-    rubrikDomain.map(r => `<option value="${esc(r.indikator)}">${esc(r.indikator)}</option>`).join('');
-  
-  wrapper.classList.remove("hidden");
-  detailWrapper.classList.add("hidden");
-}
-
-function onPilihIndikator() {
-  const domain = document.getElementById("p_domain").value;
-  const indikator = document.getElementById("p_indikator").value;
-  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
-  const detailWrapper = document.getElementById("p_detail_wrapper");
-  
-  if (!indikator) { detailWrapper.classList.add("hidden"); return; }
-
-  const rubrik = getRubrikByUsia(siswa.usia).find(r => 
-    r.domain === domain && r.indikator === indikator
-  );
-
-  if (!rubrik) return;
-
-  document.getElementById("p_contoh").innerText = rubrik.contoh_perilaku || "-";
-
-  const labels = [
-    { skor: 1, label: "Perlu Banyak Bantuan", desc: rubrik.star_1, color: "text-rose-600" },
-    { skor: 2, label: "Dengan Bimbingan", desc: rubrik.star_2, color: "text-amber-600" },
-    { skor: 3, label: "Mandiri", desc: rubrik.star_3, color: "text-blue-600" },
-    { skor: 4, label: "Berkembang Sangat Baik", desc: rubrik.star_4, color: "text-emerald-600" }
-  ];
-
-  document.getElementById("p_skor_options").innerHTML = labels.map(l => `
-    <label class="block bg-slate-50 border-2 border-slate-100 p-3.5 rounded-2xl cursor-pointer active:scale-[0.99] transition-all hover:border-purple-300">
-      <div class="flex items-start space-x-3">
-        <input type="radio" name="p_skor" value="${l.skor}" class="mt-1">
-        <div class="flex-1">
-          <div class="flex items-center space-x-2 mb-1 flex-wrap">
-            <span class="text-base" style="color:#f59e0b">${"★".repeat(l.skor)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-l.skor)}</span>
-            <span class="text-[10px] font-bold ${l.color} uppercase tracking-wider">Star ${l.skor} - ${l.label}</span>
-          </div>
-          <p class="text-[11px] text-slate-600 leading-relaxed">${esc(l.desc || "-")}</p>
-        </div>
-      </div>
-    </label>`).join('');
-
-  document.querySelectorAll('input[name="p_skor"]').forEach(radio => {
+  // Event listener radio
+  formBox.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', function() {
-      document.querySelectorAll('input[name="p_skor"]').forEach(r => {
+      const name = this.name;
+      formBox.querySelectorAll(`input[name="${name}"]`).forEach(r => {
         const label = r.closest('label');
-        if (r.checked) { 
-          label.classList.add('border-purple-500', 'bg-purple-50'); 
-          label.classList.remove('border-slate-100', 'bg-slate-50'); 
-        } else { 
-          label.classList.remove('border-purple-500', 'bg-purple-50'); 
-          label.classList.add('border-slate-100', 'bg-slate-50'); 
-        }
+        if (r.checked) { label.classList.add('border-purple-500', 'bg-purple-50'); label.classList.remove('border-slate-100', 'bg-slate-50'); }
+        else { label.classList.remove('border-purple-500', 'bg-purple-50'); label.classList.add('border-slate-100', 'bg-slate-50'); }
       });
     });
   });
-
-  detailWrapper.classList.remove("hidden");
 }
 
-async function submitPenilaian() {
-  const domain = document.getElementById("p_domain").value;
-  const indikator = document.getElementById("p_indikator").value;
-  const skor = document.querySelector('input[name="p_skor"]:checked');
+async function submitPenilaianBatch() {
+  const formBox = document.getElementById("guru-form-penilaian");
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
+  const rubrikUsia = getRubrikByUsia(siswa.usia);
+
+  const items = [];
+  const domainCards = formBox.querySelectorAll('.domain-card');
   
-  if (!domain || !indikator) { 
-    await showPopup("warning", "Data Belum Lengkap", "Pilih domain dan indikator terlebih dahulu."); 
-    return; 
-  }
-  if (!skor) { 
-    await showPopup("warning", "Belum Dinilai", "Pilih level capaian bintang."); 
-    return; 
+  for (const card of domainCards) {
+    const domain = card.dataset.domain;
+    const radio = card.querySelector('input[type="radio"]:checked');
+    if (!radio) {
+      await showPopup("warning", "Belum Lengkap", `Domain "${domain}" belum dinilai. Semua 5 domain wajib diisi.`);
+      return;
+    }
+    const catatan = card.querySelector('input[type="text"]').value;
+    const rubrik = rubrikUsia.find(r => r.domain === domain);
+    items.push({
+      domain: domain,
+      indikator: rubrik ? rubrik.indikator : "",
+      skor: radio.value,
+      catatan: catatan
+    });
   }
 
-  const loading = showLoading("Menyimpan penilaian...");
+  if (items.length === 0) { await showPopup("warning", "Tidak Ada Data", "Tidak ada domain yang dinilai."); return; }
+
+  const loading = showLoading(`Menyimpan ${items.length} penilaian...`);
   const payload = {
-    action: "saveNilai",
+    action: "saveNilaiBatch",
     siswaId: selectedSiswaId,
     pertemuan: selectedPertemuan,
-    domain: domain,
-    indikator: indikator,
-    skor: skor.value,
-    catatan: document.getElementById("p_catatan").value
+    items: items
   };
 
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
-    await new Promise(r => setTimeout(r, 1200));
+    await new Promise(r => setTimeout(r, 1500));
     loading.close();
-    await showPopup("success", "Tersimpan!", "Penilaian rubrik berhasil dicatat.");
+    await showPopup("success", "Tersimpan! 🎉", `${items.length} penilaian berhasil dicatat.`);
     refreshData(() => onPilihSiswa());
-    showToast("Penilaian tersimpan", "success");
+    showToast("Semua penilaian tersimpan", "success");
   } catch (err) {
     loading.close();
     await showPopup("error", "Gagal", "Terjadi kesalahan.");
@@ -666,36 +638,52 @@ async function submitPenilaian() {
 
 function renderRiwayatPenilaian(nilaiSiswa) {
   const box = document.getElementById("guru-riwayat");
-  const sorted = [...nilaiSiswa].sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan));
+  
+  // Group nilai per pertemuan
+  const byPertemuan = {};
+  nilaiSiswa.forEach(n => {
+    const p = String(n.pertemuan).replace(/\D/g, "");
+    if (!p) return;
+    if (!byPertemuan[p]) byPertemuan[p] = [];
+    byPertemuan[p].push(n);
+  });
+
+  const sortedPertemuan = Object.keys(byPertemuan).sort((a,b) => parseInt(a) - parseInt(b));
+
   box.innerHTML = `
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft fade-in">
       <div class="flex items-center justify-between mb-4">
         <h3 class="text-sm font-bold text-slate-900">📚 Riwayat Penilaian</h3>
-        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">${sorted.length} pertemuan</span>
+        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">${sortedPertemuan.length} pertemuan</span>
       </div>
-      <div class="space-y-2.5 max-h-96 overflow-y-auto">
-        ${sorted.length === 0 ? `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada penilaian.</p>` :
-          sorted.map(n => {
-            const s1 = getSkor(n);
-            const warna = s1 >= 4 ? 'text-emerald-600 bg-emerald-50' : s1 >= 3 ? 'text-blue-600 bg-blue-50' : s1 >= 2 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
+      <div class="space-y-3 max-h-96 overflow-y-auto">
+        ${sortedPertemuan.length === 0 ? `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada penilaian.</p>` :
+          sortedPertemuan.map(p => {
+            const nilai = byPertemuan[p];
+            const totalSkor = nilai.reduce((s, n) => s + getSkor(n), 0);
+            const rata = nilai.length > 0 ? (totalSkor / nilai.length).toFixed(1) : 0;
+            const timestamp = nilai[0].timestamp;
             return `
               <div class="p-4 bg-slate-50 rounded-2xl">
                 <div class="flex justify-between items-start mb-3">
                   <div class="flex-1 min-w-0">
-                    <p class="text-sm font-bold text-slate-800">Pertemuan ${String(n.pertemuan).replace(/\D/g,"")}</p>
-                    <p class="text-[10px] text-slate-400 mt-0.5">${fmtTanggal(n.timestamp)}</p>
+                    <p class="text-sm font-bold text-slate-800">Pertemuan ${p}</p>
+                    <p class="text-[10px] text-slate-400 mt-0.5">${fmtTanggal(timestamp)} • ${nilai.length} domain</p>
                   </div>
                   <div class="text-right shrink-0 ml-2">
-                    <div>${renderBintangHtml(s1)}</div>
-                    <p class="text-[10px] font-bold ${warna} mt-0.5 px-2 py-0.5 rounded-lg">${s1}/4</p>
+                    <p class="text-xs font-bold text-purple-600">${totalSkor}/${nilai.length * 4}</p>
+                    <p class="text-[9px] text-slate-500">rata ${rata}</p>
                   </div>
                 </div>
-                <div class="space-y-1.5 mb-3">
-                  <p class="text-[11px] text-slate-600 font-medium">${esc(n.domain)}</p>
-                  <p class="text-[10px] text-slate-500">${esc(n.indikator)}</p>
-                  ${n.catatan ? `<p class="text-[10px] text-slate-500 italic">"${esc(n.catatan)}"</p>` : ''}
+                <div class="space-y-1 mb-3">
+                  ${nilai.sort((a,b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain)).map(n => `
+                    <div class="flex items-center justify-between text-[10px] bg-white rounded-lg px-2 py-1.5">
+                      <span class="text-slate-600 truncate flex-1 mr-2">${esc(n.domain)}</span>
+                      <span style="color:#f59e0b">${"★".repeat(getSkor(n))}${"<span style='color:#e2e8f0'>★</span>".repeat(4-getSkor(n))}</span>
+                    </div>
+                  `).join('')}
                 </div>
-                <button onclick="openModalEdit('${esc(n.siswa_id)}', '${String(n.pertemuan).replace(/\D/g,"")}')" class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">✏️ Edit Nilai</button>
+                <button onclick="openModalEditBatch('${p}')" class="w-full text-[11px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 py-2.5 rounded-xl transition-colors">✏️ Edit Nilai Pertemuan Ini</button>
               </div>`;
           }).join('')}
       </div>
@@ -703,141 +691,63 @@ function renderRiwayatPenilaian(nilaiSiswa) {
 }
 
 // ============================================================
-// MODAL EDIT NILAI
+// MODAL EDIT NILAI (5 domain)
 // ============================================================
-function openModalEdit(siswaId, pertemuan) {
-  const nilai = globalNilai.find(n => String(n.siswa_id) === String(siswaId) && String(n.pertemuan).replace(/\D/g,"") === String(pertemuan));
-  if (!nilai) return;
-  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(siswaId));
-  if (!siswa) return;
-  
+function openModalEditBatch(pertemuan) {
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
+  const nilaiPertemuan = globalNilai.filter(n => String(n.siswa_id) === String(selectedSiswaId) && String(n.pertemuan).replace(/\D/g,"") === String(pertemuan));
+  const rubrikUsia = getRubrikByUsia(siswa.usia);
+  const materi = globalMateri.find(m => String(m.pertemuan) === String(pertemuan) && normalisasiUsia(m.usia) === normalisasiUsia(siswa.usia));
+
   const modal = document.getElementById("modal-edit");
   const content = document.getElementById("modal-edit-content");
-  const rubrikUsia = getRubrikByUsia(siswa.usia);
-  const domains = [...new Set(rubrikUsia.map(r => r.domain))];
-  
-  const opt = (val, label, desc, checked) => {
-    const colors = { 1: 'text-rose-600', 2: 'text-amber-600', 3: 'text-blue-600', 4: 'text-emerald-600' };
+
+  const domainCards = DOMAIN_ORDER.map((dom, idx) => {
+    const rubrik = rubrikUsia.find(r => r.domain === dom);
+    if (!rubrik) return '';
+    const existing = nilaiPertemuan.find(n => n.domain === dom);
+    const skorAwal = existing ? existing.skor : 0;
+    const catatanAwal = existing ? (existing.catatan || "") : "";
+    
     return `
-      <label class="block bg-slate-50 border-2 ${checked == val ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3 rounded-2xl cursor-pointer">
-        <div class="flex items-start space-x-2">
-          <input type="radio" name="edit_p_skor" value="${val}" ${checked == val ? 'checked' : ''} class="mt-0.5">
-          <div class="flex-1">
-            <div class="flex items-center space-x-2 mb-0.5">
-              <span class="text-sm" style="color:#f59e0b">${"★".repeat(val)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-val)}</span>
-              <span class="text-[10px] font-bold ${colors[val]} uppercase">Star ${val} - ${label}</span>
-            </div>
-            <p class="text-[10px] text-slate-600 mt-0.5">${esc(desc || "-")}</p>
-          </div>
+      <div class="domain-card-edit bg-slate-50 p-3 rounded-2xl space-y-2" data-domain="${esc(dom)}">
+        <p class="text-xs font-bold text-slate-800">${idx+1}. ${esc(dom)}</p>
+        <div class="space-y-1">
+          ${[1,2,3,4].map(level => {
+            const checked = skorAwal === level;
+            return `
+              <label class="block bg-white border-2 ${checked ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-2 rounded-lg cursor-pointer">
+                <div class="flex items-center space-x-2">
+                  <input type="radio" name="edit_skor_${idx}" value="${level}" data-domain="${esc(dom)}" ${checked ? 'checked' : ''} class="mt-0.5">
+                  <span class="text-xs" style="color:#f59e0b">${"★".repeat(level)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-level)}</span>
+                  <span class="text-[9px] font-bold text-slate-600">Star ${level}</span>
+                </div>
+              </label>`;
+          }).join('')}
         </div>
-      </label>`;
-  };
-  
+        <input type="text" name="edit_catatan_${idx}" data-domain="${esc(dom)}" value="${esc(catatanAwal)}" placeholder="Catatan" 
+               class="w-full px-2.5 py-2 bg-white border-2 border-slate-100 rounded-lg text-[10px] focus:border-purple-500 focus:outline-none">
+      </div>`;
+  }).join('');
+
   content.innerHTML = `
     <div class="space-y-1">
       <span class="text-[10px] font-bold text-purple-600 uppercase">Pertemuan ${pertemuan}</span>
-      <h4 class="text-sm font-bold text-slate-900">${esc(nilai.domain)}</h4>
+      <h4 class="text-sm font-bold text-slate-900">${materi ? esc(materi.judul_materi) : '-'}</h4>
       <p class="text-[10px] text-slate-500">Usia: ${siswa.usia} tahun</p>
     </div>
-    <div class="bg-purple-50 border-l-4 border-purple-500 p-2.5 rounded-xl">
-      <p class="text-[10px] font-bold text-purple-700 uppercase mb-1">Indikator</p>
-      <p class="text-[10px] text-slate-700 leading-relaxed">${esc(nilai.indikator)}</p>
-    </div>
-    <div class="space-y-3 pt-3 border-t border-slate-100">
-      <div>
-        <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Domain</label>
-        <select id="edit_p_domain" onchange="onEditDomainChange()" class="w-full mt-1.5 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
-          ${domains.map(d => `<option value="${esc(d)}" ${nilai.domain === d ? 'selected' : ''}>${esc(d)}</option>`).join('')}
-        </select>
-      </div>
-      <div>
-        <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Indikator</label>
-        <select id="edit_p_indikator" onchange="onEditIndikatorChange()" class="w-full mt-1.5 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none"></select>
-      </div>
-      <div class="space-y-1.5">
-        <p class="text-[10px] font-bold text-slate-600 uppercase tracking-wider ml-1">Pilih Capaian</p>
-        <div id="edit_p_skor_options" class="space-y-1.5"></div>
-      </div>
-      <input type="text" id="edit_p_catatan" value="${esc(nilai.catatan || '')}" placeholder="Catatan" class="w-full px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:outline-none">
-    </div>
-    <button onclick="submitEditNilai('${esc(siswaId)}', '${pertemuan}')" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">💾 Simpan Perubahan</button>`;
+    <div class="space-y-2 pt-3 border-t border-slate-100">${domainCards}</div>
+    <button onclick="submitEditBatch('${pertemuan}')" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">💾 Simpan Perubahan</button>`;
   
   modal.classList.remove("hidden");
-  
-  // Init
-  onEditDomainChange(nilai.indikator);
-}
 
-function onEditDomainChange(indikatorTarget) {
-  const domain = document.getElementById("edit_p_domain").value;
-  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId || ""));
-  // pakai data dari nilai yang sedang di-edit
-  const nilaiRef = globalNilai.find(n => n.domain === domain);
-  const usia = nilaiRef ? null : null;
-  
-  // Ambil siswa dari selectedSiswaId (bisa kosong di ortu)
-  let siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
-  if (!siswaObj && currentLoggedInUser && currentLoggedInUser.siswa_id) {
-    siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(currentLoggedInUser.siswa_id));
-  }
-  if (!siswaObj) return;
-  
-  const rubrikDomain = getRubrikByUsia(siswaObj.usia).filter(r => r.domain === domain);
-  const selInd = document.getElementById("edit_p_indikator");
-  selInd.innerHTML = rubrikDomain.map(r => `<option value="${esc(r.indikator)}" ${indikatorTarget === r.indikator ? 'selected' : ''}>${esc(r.indikator)}</option>`).join('');
-  
-  onEditIndikatorChange();
-}
-
-function onEditIndikatorChange() {
-  const domain = document.getElementById("edit_p_domain").value;
-  const indikator = document.getElementById("edit_p_indikator").value;
-  
-  let siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
-  if (!siswaObj && currentLoggedInUser && currentLoggedInUser.siswa_id) {
-    siswaObj = globalSiswa.find(s => String(s.siswa_id) === String(currentLoggedInUser.siswa_id));
-  }
-  if (!siswaObj) return;
-  
-  const rubrik = getRubrikByUsia(siswaObj.usia).find(r => r.domain === domain && r.indikator === indikator);
-  if (!rubrik) return;
-  
-  const existing = globalNilai.find(n => 
-    String(n.siswa_id) === String(siswaObj.siswa_id) &&
-    n.domain === domain && n.indikator === indikator
-  );
-  const currentSkor = existing ? existing.skor : 0;
-  
-  const labels = [
-    { skor: 1, label: "Perlu Banyak Bantuan", desc: rubrik.star_1, color: "text-rose-600" },
-    { skor: 2, label: "Dengan Bimbingan", desc: rubrik.star_2, color: "text-amber-600" },
-    { skor: 3, label: "Mandiri", desc: rubrik.star_3, color: "text-blue-600" },
-    { skor: 4, label: "Berkembang Sangat Baik", desc: rubrik.star_4, color: "text-emerald-600" }
-  ];
-  
-  document.getElementById("edit_p_skor_options").innerHTML = labels.map(l => {
-    const checked = currentSkor === l.skor;
-    return `
-      <label class="block bg-slate-50 border-2 ${checked ? 'border-purple-500 bg-purple-50' : 'border-slate-100'} p-3 rounded-2xl cursor-pointer">
-        <div class="flex items-start space-x-2">
-          <input type="radio" name="edit_p_skor" value="${l.skor}" ${checked ? 'checked' : ''} class="mt-0.5">
-          <div class="flex-1">
-            <div class="flex items-center space-x-2 mb-0.5">
-              <span class="text-sm" style="color:#f59e0b">${"★".repeat(l.skor)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-l.skor)}</span>
-              <span class="text-[10px] font-bold ${l.color} uppercase">Star ${l.skor} - ${l.label}</span>
-            </div>
-            <p class="text-[10px] text-slate-600 mt-0.5">${esc(l.desc || "-")}</p>
-          </div>
-        </div>
-      </label>`;
-  }).join('');
-  
-  document.querySelectorAll('input[name="edit_p_skor"]').forEach(radio => {
+  content.querySelectorAll('input[type="radio"]').forEach(radio => {
     radio.addEventListener('change', function() {
-      document.querySelectorAll('input[name="edit_p_skor"]').forEach(r => {
+      const name = this.name;
+      content.querySelectorAll(`input[name="${name}"]`).forEach(r => {
         const label = r.closest('label');
-        if (r.checked) { label.classList.add('border-purple-500', 'bg-purple-50'); label.classList.remove('border-slate-100', 'bg-slate-50'); }
-        else { label.classList.remove('border-purple-500', 'bg-purple-50'); label.classList.add('border-slate-100', 'bg-slate-50'); }
+        if (r.checked) { label.classList.add('border-purple-500', 'bg-purple-50'); label.classList.remove('border-slate-100', 'bg-white'); }
+        else { label.classList.remove('border-purple-500', 'bg-purple-50'); label.classList.add('border-slate-100', 'bg-white'); }
       });
     });
   });
@@ -845,31 +755,41 @@ function onEditIndikatorChange() {
 
 function closeModalEdit() { document.getElementById("modal-edit").classList.add("hidden"); }
 
-async function submitEditNilai(siswaId, pertemuan) {
-  const domain = document.getElementById("edit_p_domain").value;
-  const indikator = document.getElementById("edit_p_indikator").value;
-  const skor = document.querySelector('input[name="edit_p_skor"]:checked');
-  if (!skor) { await showPopup("warning", "Data Belum Lengkap", "Pilih bintang."); return; }
+async function submitEditBatch(pertemuan) {
+  const siswa = globalSiswa.find(s => String(s.siswa_id) === String(selectedSiswaId));
+  const rubrikUsia = getRubrikByUsia(siswa.usia);
+  const content = document.getElementById("modal-edit-content");
+  const items = [];
   
+  for (const card of content.querySelectorAll('.domain-card-edit')) {
+    const domain = card.dataset.domain;
+    const radio = card.querySelector('input[type="radio"]:checked');
+    if (!radio) { await showPopup("warning", "Belum Lengkap", `Domain "${domain}" belum dinilai.`); return; }
+    const catatan = card.querySelector('input[type="text"]').value;
+    const rubrik = rubrikUsia.find(r => r.domain === domain);
+    items.push({
+      domain: domain,
+      indikator: rubrik ? rubrik.indikator : "",
+      skor: radio.value,
+      catatan: catatan
+    });
+  }
+
   const loading = showLoading("Menyimpan perubahan...");
   const payload = {
-    action: "saveNilai",
-    siswaId, pertemuan,
-    domain: domain,
-    indikator: indikator,
-    skor: skor.value,
-    catatan: document.getElementById("edit_p_catatan").value
+    action: "saveNilaiBatch",
+    siswaId: selectedSiswaId,
+    pertemuan: pertemuan,
+    items: items
   };
+
   try {
     await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" }, body: JSON.stringify(payload) });
     await new Promise(r => setTimeout(r, 1000));
     loading.close();
     closeModalEdit();
     await showPopup("success", "Terupdate!", "Perubahan nilai disimpan.");
-    refreshData(() => {
-      if (selectedSiswaId) onPilihSiswa();
-      if (currentLoggedInUser && currentLoggedInUser.role === "ortu") renderLaporanAnak();
-    });
+    refreshData(() => onPilihSiswa());
     showToast("Nilai diperbarui", "success");
   } catch (err) {
     loading.close();
@@ -889,23 +809,15 @@ function renderDashboardGuru() {
     const levelSiswa = globalLevel.find(l => l.level === s.level_saat_ini);
     const totalPertemuanUsia = levelSiswa ? (parseInt(levelSiswa.pertemuan_max) - parseInt(levelSiswa.pertemuan_min) + 1) : 0;
     const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(s.siswa_id));
-    const um = new Map();
-    nilaiSiswa.forEach(n => {
-      const k = String(n.pertemuan).replace(/\D/g, "");
-      if (!k) return;
-      if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
-    });
-    const totalBintang = Array.from(um.values()).reduce((sum, n) => sum + getSkor(n), 0);
-    const maxBintang = totalPertemuanUsia * 4;
+    const totalBintang = nilaiSiswa.reduce((sum, n) => sum + getSkor(n), 0);
+    const maxBintang = totalPertemuanUsia * 5 * 4; // 5 domain × 4 bintang
     const persen = maxBintang > 0 ? ((totalBintang / maxBintang) * 100).toFixed(1) : 0;
-    const rataBintang = um.size > 0 ? (totalBintang / um.size).toFixed(1) : 0;
-    return { ...s, totalBintang, maxBintang, count: um.size, totalPertemuanUsia, persen, rataBintang };
+    const rataBintang = nilaiSiswa.length > 0 ? (totalBintang / nilaiSiswa.length).toFixed(1) : 0;
+    return { ...s, totalBintang, maxBintang, count: nilaiSiswa.length, totalPertemuanUsia, persen, rataBintang };
   }).sort((a, b) => b.totalBintang - a.totalBintang);
 
   const totalSiswa = globalSiswa.length;
-  const rataRata = totalSiswa > 0
-    ? (stats.reduce((s, x) => s + parseFloat(x.persen), 0) / totalSiswa).toFixed(1)
-    : 0;
+  const rataRata = totalSiswa > 0 ? (stats.reduce((s, x) => s + parseFloat(x.persen), 0) / totalSiswa).toFixed(1) : 0;
   const totalBintangSemua = stats.reduce((s, x) => s + x.totalBintang, 0);
 
   box.innerHTML = `
@@ -925,7 +837,7 @@ function renderDashboardGuru() {
     </div>
 
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
-      <h3 class="text-sm font-bold text-slate-900 mb-4">🏆 Peringkat Siswa (Bintang)</h3>
+      <h3 class="text-sm font-bold text-slate-900 mb-4">🏆 Peringkat Siswa</h3>
       <div class="space-y-2">
         ${stats.length === 0 ? '<p class="text-xs text-slate-400 text-center py-6">Belum ada siswa.</p>' :
           stats.map((s, i) => {
@@ -936,11 +848,11 @@ function renderDashboardGuru() {
                 ${renderAvatar(s, 'md')}
                 <div class="flex-1 min-w-0">
                   <p class="text-xs font-bold text-slate-800 truncate">${esc(s.nama_siswa)}</p>
-                  <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count}/${s.totalPertemuanUsia} pertemuan</p>
+                  <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count} penilaian</p>
                 </div>
                 <div class="text-right shrink-0">
-                  <div>${renderBintangHtml(s.rataBintang)}</div>
-                  <p class="text-[10px] text-slate-500 font-bold">${s.totalBintang}⭐ • ${s.persen}%</p>
+                  <p class="text-xs font-bold text-purple-600">${s.totalBintang}⭐</p>
+                  <p class="text-[10px] text-slate-400">${s.persen}%</p>
                 </div>
               </div>`;
           }).join('')}
@@ -948,14 +860,14 @@ function renderDashboardGuru() {
     </div>
 
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
-      <h3 class="text-sm font-bold text-slate-900 mb-4">📊 Detail Capaian per Siswa</h3>
+      <h3 class="text-sm font-bold text-slate-900 mb-4">📊 Detail Capaian</h3>
       <div class="space-y-3">
         ${stats.map(s => {
           const warna = parseFloat(s.persen) >= 85 ? 'bg-emerald-500' : parseFloat(s.persen) >= 65 ? 'bg-blue-500' : 'bg-amber-500';
           return `
             <div>
               <div class="flex justify-between items-center mb-1.5">
-                <span class="text-xs font-bold text-slate-800">${esc(s.nama_siswa)} <span class="text-slate-400 font-normal">(${s.usia} thn)</span></span>
+                <span class="text-xs font-bold text-slate-800">${esc(s.nama_siswa)}</span>
                 <span class="text-[10px] font-bold text-slate-500">${s.totalBintang}/${s.maxBintang} ⭐ • ${s.persen}%</span>
               </div>
               <div class="w-full bg-slate-100 rounded-full h-2">
@@ -968,7 +880,7 @@ function renderDashboardGuru() {
 }
 
 // ============================================================
-// RUBRIK
+// RUBRIK CRUD
 // ============================================================
 function renderRubrikList() {
   const box = document.getElementById("rubrik-list");
@@ -976,11 +888,10 @@ function renderRubrikList() {
   if (total) total.innerText = globalRubrik.length;
   if (!box) return;
   if (globalRubrik.length === 0) {
-    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Rubrik kosong. Klik + untuk menambah.</p>`;
+    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Rubrik kosong.</p>`;
     return;
   }
 
-  // Group by usia
   const groups = {};
   globalRubrik.forEach(r => {
     const u = normalisasiUsia(r.usia);
@@ -1043,6 +954,7 @@ function formRubrikHTML(r, isEdit) {
     </div>`;
   const usiaOptions = ['4 Tahun','5 Tahun','6 Tahun','7 Tahun','8 Tahun']
     .map(u => `<option ${normalisasiUsia(r.usia) === normalisasiUsia(u) ? 'selected' : ''}>${u}</option>`).join('');
+  const domainOptions = DOMAIN_ORDER.map(d => `<option ${r.domain === d ? 'selected' : ''}>${d}</option>`).join('');
   return `
     <div class="grid grid-cols-2 gap-3">
       ${field('rub_no', 'No.', r.no)}
@@ -1051,7 +963,13 @@ function formRubrikHTML(r, isEdit) {
         <select id="rub_usia" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${usiaOptions}</select>
       </div>
     </div>
-    ${field('rub_domain', 'Domain', r.domain)}
+    <div>
+      <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Domain</label>
+      <select id="rub_domain" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">
+        <option value="">-- Pilih Domain --</option>
+        ${domainOptions}
+      </select>
+    </div>
     ${field('rub_indikator', 'Indikator', r.indikator, true)}
     ${field('rub_contoh', 'Contoh Perilaku yang Diamati', r.contoh_perilaku, true)}
     <div class="pt-3 border-t border-slate-100 space-y-3">
@@ -1061,7 +979,7 @@ function formRubrikHTML(r, isEdit) {
       ${field('rub_star3', 'Star 3 - Mandiri', r.star_3, true)}
       ${field('rub_star4', 'Star 4 - Berkembang Sangat Baik', r.star_4, true)}
     </div>
-    ${isEdit ? `<button onclick="hapusRubrikKonfirmasi('${esc(r.no)}', '${esc(r.usia)}')" class="w-full bg-rose-50 text-rose-600 font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-sm">🗑️ Hapus Rubrik Ini</button>` : ''}
+    ${isEdit ? `<button onclick="hapusRubrikKonfirmasi('${esc(r.no)}', '${esc(r.usia)}')" class="w-full bg-rose-50 text-rose-600 font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-sm">🗑️ Hapus Rubrik</button>` : ''}
     <button onclick="submitRubrik(${isEdit})" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
       ${isEdit ? '💾 Simpan Perubahan' : '➕ Tambah Rubrik'}
     </button>`;
@@ -1081,6 +999,7 @@ async function submitRubrik(isEdit) {
     star_4: document.getElementById("rub_star4").value,
     usia: document.getElementById("rub_usia").value
   };
+  if (!data.domain) { await showPopup("warning", "Domain Kosong", "Pilih domain terlebih dahulu."); return; }
   const loading = showLoading(isEdit ? "Menyimpan perubahan..." : "Menambahkan rubrik...");
   try {
     if (isEdit) {
@@ -1126,6 +1045,158 @@ async function hapusRubrikKonfirmasi(no, usia) {
 }
 
 // ============================================================
+// MATERI CRUD
+// ============================================================
+function renderMateriList() {
+  const box = document.getElementById("materi-list");
+  const total = document.getElementById("total-materi");
+  if (total) total.innerText = globalMateri.length;
+  if (!box) return;
+  if (globalMateri.length === 0) {
+    box.innerHTML = `<p class="text-xs text-slate-400 text-center py-6">Belum ada materi. Klik + untuk menambah.</p>`;
+    return;
+  }
+
+  const groups = {};
+  globalMateri.forEach(m => {
+    const u = normalisasiUsia(m.usia);
+    if (!groups[u]) groups[u] = [];
+    groups[u].push(m);
+  });
+
+  box.innerHTML = Object.entries(groups).sort((a,b) => parseInt(a[0]) - parseInt(b[0])).map(([usia, items]) => `
+    <div class="bg-white p-4 rounded-3xl border border-slate-100 shadow-soft">
+      <h3 class="text-[11px] font-bold text-blue-600 uppercase tracking-wider mb-3 px-1">👦 Usia ${usia} Tahun</h3>
+      <div class="space-y-2">
+        ${items.sort((a,b) => parseInt(a.pertemuan) - parseInt(b.pertemuan)).map(m => `
+          <div class="bg-slate-50 rounded-2xl p-3.5">
+            <div class="flex items-start justify-between">
+              <div class="flex-1 min-w-0 pr-2">
+                <div class="flex items-center space-x-2 mb-1">
+                  <span class="w-8 h-8 gradient-blue text-white rounded-lg flex items-center justify-center text-[10px] font-bold shrink-0">P${esc(m.pertemuan)}</span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-xs font-bold text-slate-800 truncate">${esc(m.judul_materi)}</p>
+                    <p class="text-[10px] text-slate-500 truncate">${esc(m.level)}</p>
+                  </div>
+                </div>
+                ${m.deskripsi ? `<p class="text-[10px] text-slate-500 ml-10 mt-1">${esc(m.deskripsi)}</p>` : ''}
+              </div>
+              <button onclick="openModalMateri('${esc(m.pertemuan)}', '${esc(m.usia)}')" class="text-[10px] text-purple-600 font-bold bg-purple-50 hover:bg-purple-100 px-2.5 py-1 rounded-lg shrink-0">✏️</button>
+            </div>
+          </div>`).join('')}
+      </div>
+    </div>`).join('');
+}
+
+function openModalMateriBaru() {
+  editingMateriPertemuan = null;
+  editingMateriUsia = null;
+  document.getElementById("modal-materi-title").innerText = "➕ Tambah Materi";
+  const content = document.getElementById("modal-materi-content");
+  const nextNum = globalMateri.length > 0 ? Math.max(...globalMateri.map(m => parseInt(m.pertemuan) || 0)) + 1 : 1;
+  content.innerHTML = formMateriHTML({
+    pertemuan: nextNum, level: globalLevel[0] ? globalLevel[0].level : "", judul_materi: "", deskripsi: "", usia: "6 Tahun"
+  }, false);
+  document.getElementById("modal-materi").classList.remove("hidden");
+}
+
+function openModalMateri(pertemuan, usia) {
+  const u = normalisasiUsia(usia);
+  const m = globalMateri.find(x => String(x.pertemuan) === String(pertemuan) && normalisasiUsia(x.usia) === u);
+  if (!m) return;
+  editingMateriPertemuan = pertemuan;
+  editingMateriUsia = u;
+  document.getElementById("modal-materi-title").innerText = `✏️ Edit Materi P${pertemuan}`;
+  document.getElementById("modal-materi-content").innerHTML = formMateriHTML(m, true);
+  document.getElementById("modal-materi").classList.remove("hidden");
+}
+
+function formMateriHTML(m, isEdit) {
+  const field = (id, label, val, multiline = false) => `
+    <div>
+      <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">${label}</label>
+      ${multiline
+        ? `<textarea id="${id}" rows="3" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${esc(val)}</textarea>`
+        : `<input type="text" id="${id}" value="${esc(val)}" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">`}
+    </div>`;
+  const usiaOptions = ['4 Tahun','5 Tahun','6 Tahun','7 Tahun','8 Tahun']
+    .map(u => `<option ${normalisasiUsia(m.usia) === normalisasiUsia(u) ? 'selected' : ''}>${u}</option>`).join('');
+  const levelOptions = globalLevel.map(l => `<option ${m.level === l.level ? 'selected' : ''}>${esc(l.level)}</option>`).join('');
+  return `
+    <div class="grid grid-cols-2 gap-3">
+      ${field('mat_pertemuan', 'Pertemuan Ke-', m.pertemuan)}
+      <div>
+        <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Usia</label>
+        <select id="mat_usia" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${usiaOptions}</select>
+      </div>
+    </div>
+    <div>
+      <label class="text-[10px] font-semibold text-slate-500 uppercase tracking-wider ml-1">Level</label>
+      <select id="mat_level" class="w-full mt-1 px-3 py-2.5 bg-slate-50 border-2 border-slate-100 rounded-xl text-xs focus:border-purple-500 focus:bg-white focus:outline-none">${levelOptions}</select>
+    </div>
+    ${field('mat_judul', 'Judul Materi', m.judul_materi, true)}
+    ${field('mat_deskripsi', 'Deskripsi Materi', m.deskripsi, true)}
+    ${isEdit ? `<button onclick="hapusMateriKonfirmasi('${esc(m.pertemuan)}', '${esc(m.usia)}')" class="w-full bg-rose-50 text-rose-600 font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-sm">🗑️ Hapus Materi</button>` : ''}
+    <button onclick="submitMateri(${isEdit})" class="w-full gradient-purple text-white font-bold py-3.5 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200">
+      ${isEdit ? '💾 Simpan Perubahan' : '➕ Tambah Materi'}
+    </button>`;
+}
+
+function closeModalMateri() { document.getElementById("modal-materi").classList.add("hidden"); }
+
+async function submitMateri(isEdit) {
+  const data = {
+    pertemuan: document.getElementById("mat_pertemuan").value,
+    level: document.getElementById("mat_level").value,
+    judul_materi: document.getElementById("mat_judul").value,
+    deskripsi: document.getElementById("mat_deskripsi").value,
+    usia: document.getElementById("mat_usia").value
+  };
+  const loading = showLoading(isEdit ? "Menyimpan..." : "Menambahkan materi...");
+  try {
+    if (isEdit) {
+      data.pertemuan_lama = editingMateriPertemuan;
+      data.usia_lama = editingMateriUsia;
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "updateMateri", ...data }) });
+    } else {
+      await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+        body: JSON.stringify({ action: "tambahMateri", ...data }) });
+    }
+    await new Promise(r => setTimeout(r, 1200));
+    loading.close();
+    closeModalMateri();
+    await showPopup("success", "Berhasil!", isEdit ? "Materi diperbarui." : "Materi baru ditambahkan.");
+    refreshData(() => renderMateriList());
+    showToast(isEdit ? "Materi diperbarui" : "Materi ditambahkan", "success");
+  } catch (err) {
+    loading.close();
+    await showPopup("error", "Gagal", "Terjadi kesalahan.");
+    console.error(err);
+  }
+}
+
+async function hapusMateriKonfirmasi(pertemuan, usia) {
+  const ok = await showConfirm("Hapus Materi?", `Yakin hapus materi pertemuan ${pertemuan}?`, "Ya, Hapus", "Batal");
+  if (!ok) return;
+  const loading = showLoading("Menghapus...");
+  try {
+    await fetch(SCRIPT_URL, { method: "POST", mode: "no-cors", headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify({ action: "hapusMateri", pertemuan, usia }) });
+    await new Promise(r => setTimeout(r, 1000));
+    loading.close();
+    closeModalMateri();
+    await showPopup("success", "Terhapus!", `Materi dihapus.`);
+    refreshData(() => renderMateriList());
+    showToast("Materi dihapus", "success");
+  } catch (err) {
+    loading.close();
+    await showPopup("error", "Gagal", "Terjadi kesalahan.");
+    console.error(err);
+  }
+}
+
+// ============================================================
 // DASHBOARD SUPERADMIN
 // ============================================================
 function renderDashboard() {
@@ -1136,16 +1207,11 @@ function renderDashboard() {
 
   const stats = globalSiswa.map(s => {
     const nilaiSiswa = globalNilai.filter(n => String(n.siswa_id) === String(s.siswa_id));
-    const um = new Map();
-    nilaiSiswa.forEach(n => {
-      const k = String(n.pertemuan).replace(/\D/g,"");
-      if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
-    });
-    const total = Array.from(um.values()).reduce((sum, n) => sum + getSkor(n), 0);
+    const total = nilaiSiswa.reduce((sum, n) => sum + getSkor(n), 0);
     const levelSiswa = globalLevel.find(l => l.level === s.level_saat_ini);
     const totalPertemuan = levelSiswa ? (parseInt(levelSiswa.pertemuan_max) - parseInt(levelSiswa.pertemuan_min) + 1) : 0;
-    const maxBintang = totalPertemuan * 4;
-    return { ...s, totalBintang: total, count: um.size, maxBintang, persen: maxBintang > 0 ? ((total/maxBintang)*100).toFixed(1) : 0 };
+    const maxBintang = totalPertemuan * 5 * 4;
+    return { ...s, totalBintang: total, count: nilaiSiswa.length, maxBintang, persen: maxBintang > 0 ? ((total/maxBintang)*100).toFixed(1) : 0 };
   }).sort((a,b) => b.totalBintang - a.totalBintang);
 
   box.innerHTML = `
@@ -1153,18 +1219,22 @@ function renderDashboard() {
       <h2 class="text-2xl font-bold text-slate-900">Dashboard</h2>
       <p class="text-xs text-slate-500 mt-1">Pantau perkembangan seluruh siswa</p>
     </div>
-    <div class="grid grid-cols-3 gap-2">
-      <div class="gradient-purple p-4 rounded-3xl text-white shadow-soft">
-        <p class="text-[9px] uppercase tracking-wider text-white/70">Siswa</p>
-        <p class="text-2xl font-bold mt-1">${totalSiswa}</p>
+    <div class="grid grid-cols-4 gap-2">
+      <div class="gradient-purple p-3 rounded-3xl text-white shadow-soft">
+        <p class="text-[8px] uppercase tracking-wider text-white/70">Siswa</p>
+        <p class="text-xl font-bold mt-1">${totalSiswa}</p>
       </div>
-      <div class="gradient-green p-4 rounded-3xl text-white shadow-soft">
-        <p class="text-[9px] uppercase tracking-wider text-white/70">Rubrik</p>
-        <p class="text-2xl font-bold mt-1">${globalRubrik.length}</p>
+      <div class="gradient-green p-3 rounded-3xl text-white shadow-soft">
+        <p class="text-[8px] uppercase tracking-wider text-white/70">Rubrik</p>
+        <p class="text-xl font-bold mt-1">${globalRubrik.length}</p>
       </div>
-      <div class="gradient-blue p-4 rounded-3xl text-white shadow-soft">
-        <p class="text-[9px] uppercase tracking-wider text-white/70">Penilaian</p>
-        <p class="text-2xl font-bold mt-1">${totalNilai}</p>
+      <div class="gradient-blue p-3 rounded-3xl text-white shadow-soft">
+        <p class="text-[8px] uppercase tracking-wider text-white/70">Materi</p>
+        <p class="text-xl font-bold mt-1">${globalMateri.length}</p>
+      </div>
+      <div class="gradient-orange p-3 rounded-3xl text-white shadow-soft">
+        <p class="text-[8px] uppercase tracking-wider text-white/70">Nilai</p>
+        <p class="text-xl font-bold mt-1">${totalNilai}</p>
       </div>
     </div>
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
@@ -1178,7 +1248,7 @@ function renderDashboard() {
               ${renderAvatar(s, 'md')}
               <div class="flex-1 min-w-0">
                 <p class="text-xs font-bold text-slate-800 truncate">${esc(s.nama_siswa)}</p>
-                <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count} pertemuan</p>
+                <p class="text-[10px] text-slate-400">${s.usia} thn • ${s.count} penilaian</p>
               </div>
               <div class="text-right shrink-0">
                 <p class="text-xs font-bold text-purple-600">${s.totalBintang}⭐</p>
@@ -1201,26 +1271,21 @@ function renderLaporanAnak() {
   if (!siswaObj) { container.innerHTML = `<p class="text-xs text-rose-500 text-center">Data tidak ditemukan.</p>`; return; }
 
   const nilaiList = globalNilai.filter(n => String(n.siswa_id) === String(siswaId));
-  const um = new Map();
-  nilaiList.forEach(n => {
-    const k = String(n.pertemuan).replace(/\D/g, "");
-    if (!k) return;
-    if (!um.has(k) || new Date(n.timestamp) > new Date(um.get(k).timestamp)) um.set(k, n);
-  });
-  const nilaiUnik = Array.from(um.values());
+  const pertemuanDinilai = new Set(nilaiList.map(n => String(n.pertemuan).replace(/\D/g, "")));
 
   const levelData = globalLevel.map(lv => {
     const min = parseInt(lv.pertemuan_min), max = parseInt(lv.pertemuan_max);
-    const filtered = nilaiUnik.filter(n => {
+    const nilaiLevel = nilaiList.filter(n => {
       const p = parseInt(String(n.pertemuan).replace(/\D/g,""));
       return p >= min && p <= max;
     });
-    const total = filtered.reduce((s, n) => s + getSkor(n), 0);
+    const total = nilaiLevel.reduce((s, n) => s + getSkor(n), 0);
     const maxP = max - min + 1;
+    const countPertemuan = new Set(nilaiLevel.map(n => String(n.pertemuan).replace(/\D/g,""))).size;
     return {
       level: lv.level, icon: lv.icon || "📘", warna: lv.warna || "#7c3aed",
-      total, max: maxP * 4, count: filtered.length, maxP,
-      selesai: maxP > 0 && filtered.length >= maxP
+      total, max: maxP * 5 * 4, count: countPertemuan, maxP,
+      selesai: maxP > 0 && countPertemuan >= maxP
     };
   });
 
@@ -1236,7 +1301,7 @@ function renderLaporanAnak() {
 
   const activeIdx = levelData.findIndex(l => !l.selesai);
   const activeLevel = activeIdx >= 0 ? activeIdx : levelData.length - 1;
-  const rataBintang = nilaiUnik.length > 0 ? (grandTotal / nilaiUnik.length).toFixed(1) : 0;
+  const rataBintang = nilaiList.length > 0 ? (grandTotal / nilaiList.length).toFixed(1) : 0;
 
   headerBox.innerHTML = `
     <div class="bg-white rounded-3xl border border-slate-100 shadow-soft overflow-hidden">
@@ -1262,7 +1327,7 @@ function renderLaporanAnak() {
           <div class="bg-white/15 backdrop-blur-sm rounded-2xl p-3">
             <p class="text-[9px] uppercase tracking-wider text-white/70 font-semibold">Progress</p>
             <p class="text-2xl font-bold mt-0.5">${persenAkhir}%</p>
-            <p class="text-[9px] text-white/60">${nilaiUnik.length} pertemuan dinilai</p>
+            <p class="text-[9px] text-white/60">${pertemuanDinilai.size} pertemuan dinilai</p>
           </div>
         </div>
       </div>
@@ -1319,33 +1384,52 @@ function renderLaporanAnak() {
 
     <div class="bg-white p-5 rounded-3xl border border-slate-100 shadow-soft">
       <div class="flex items-center justify-between mb-4">
-        <h3 class="text-sm font-bold text-slate-900">📝 Riwayat Bintang</h3>
-        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">${nilaiUnik.length}</span>
+        <h3 class="text-sm font-bold text-slate-900">📝 Riwayat Penilaian</h3>
+        <span class="text-[10px] bg-slate-100 text-slate-600 px-2.5 py-1 rounded-full font-bold">${pertemuanDinilai.size} pertemuan</span>
       </div>
-      <div class="space-y-2.5 max-h-96 overflow-y-auto">
-        ${nilaiUnik.length > 0 ? nilaiUnik.sort((a,b) => parseInt(String(a.pertemuan).replace(/\D/g,"")) - parseInt(String(b.pertemuan).replace(/\D/g,""))).map(n => {
-          const s1 = getSkor(n);
-          const warna = s1 >= 4 ? 'text-emerald-600 bg-emerald-50' : s1 >= 3 ? 'text-blue-600 bg-blue-50' : s1 >= 2 ? 'text-amber-600 bg-amber-50' : 'text-rose-600 bg-rose-50';
-          return `
-            <div class="p-3.5 bg-slate-50 rounded-2xl">
-              <div class="flex justify-between items-start mb-2">
-                <div class="flex-1 min-w-0">
-                  <p class="text-xs font-bold text-slate-800">Pertemuan ${String(n.pertemuan).replace(/\D/g,"")}</p>
-                  <p class="text-[10px] text-slate-400">${fmtTanggal(n.timestamp)}</p>
-                </div>
-                <div class="text-right shrink-0">
-                  <div>${renderBintangHtml(s1)}</div>
-                  <p class="text-[10px] font-bold ${warna} px-2 py-0.5 rounded-lg mt-0.5">${s1}/4</p>
-                </div>
-              </div>
-              <p class="text-[10px] text-slate-500 font-medium">${esc(n.domain)}</p>
-              <p class="text-[10px] text-slate-500 truncate">${esc(n.indikator)}</p>
-              ${n.catatan ? `<p class="text-[10px] text-slate-500 italic mt-1">"${esc(n.catatan)}"</p>` : ''}
-            </div>`;
-        }).join('') : `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada nilai.</p>`}
+      <div class="space-y-3 max-h-96 overflow-y-auto">
+        ${renderRiwayatOrtu(nilaiList)}
       </div>
     </div>`;
-  renderChart(nilaiUnik);
+  renderChart(nilaiList);
+}
+
+function renderRiwayatOrtu(nilaiList) {
+  const byPertemuan = {};
+  nilaiList.forEach(n => {
+    const p = String(n.pertemuan).replace(/\D/g, "");
+    if (!p) return;
+    if (!byPertemuan[p]) byPertemuan[p] = [];
+    byPertemuan[p].push(n);
+  });
+  const sorted = Object.keys(byPertemuan).sort((a,b) => parseInt(a) - parseInt(b));
+  if (sorted.length === 0) return `<p class="text-xs text-slate-400 text-center py-6 italic">Belum ada nilai.</p>`;
+  return sorted.map(p => {
+    const nilai = byPertemuan[p];
+    const totalSkor = nilai.reduce((s, n) => s + getSkor(n), 0);
+    const materi = globalMateri.find(m => String(m.pertemuan) === String(p));
+    return `
+      <div class="p-4 bg-slate-50 rounded-2xl">
+        <div class="flex justify-between items-start mb-3">
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-800">Pertemuan ${p}</p>
+            <p class="text-[10px] text-slate-500">${materi ? esc(materi.judul_materi) : '-'}</p>
+            <p class="text-[9px] text-slate-400">${fmtTanggal(nilai[0].timestamp)}</p>
+          </div>
+          <div class="text-right shrink-0 ml-2">
+            <p class="text-xs font-bold text-purple-600">${totalSkor}/${nilai.length*4}</p>
+          </div>
+        </div>
+        <div class="space-y-1">
+          ${nilai.sort((a,b) => DOMAIN_ORDER.indexOf(a.domain) - DOMAIN_ORDER.indexOf(b.domain)).map(n => `
+            <div class="flex items-center justify-between text-[10px] bg-white rounded-lg px-2 py-1.5">
+              <span class="text-slate-600 truncate flex-1 mr-2">${esc(n.domain)}</span>
+              <span style="color:#f59e0b">${"★".repeat(getSkor(n))}${"<span style='color:#e2e8f0'>★</span>".repeat(4-getSkor(n))}</span>
+            </div>
+          `).join('')}
+        </div>
+      </div>`;
+  }).join('');
 }
 
 function renderChart(nilaiList) {
@@ -1353,9 +1437,20 @@ function renderChart(nilaiList) {
   if (!canvas) return;
   const ctx = canvas.getContext('2d');
   if (myChartInstance) myChartInstance.destroy();
-  const sorted = [...nilaiList].sort((a, b) => parseInt(String(a.pertemuan).replace(/\D/g,"")) - parseInt(String(b.pertemuan).replace(/\D/g,"")));
-  const labels = sorted.map(n => `P${String(n.pertemuan).replace(/\D/g,"")}`);
-  const data = sorted.map(n => getSkor(n));
+  // Group by pertemuan → average
+  const byP = {};
+  nilaiList.forEach(n => {
+    const p = String(n.pertemuan).replace(/\D/g, "");
+    if (!p) return;
+    if (!byP[p]) byP[p] = [];
+    byP[p].push(getSkor(n));
+  });
+  const sorted = Object.keys(byP).sort((a,b) => parseInt(a) - parseInt(b));
+  const labels = sorted.map(p => `P${p}`);
+  const data = sorted.map(p => {
+    const arr = byP[p];
+    return arr.length > 0 ? (arr.reduce((s,x) => s+x, 0) / arr.length) : 0;
+  });
   myChartInstance = new Chart(ctx, {
     type: 'line',
     data: {
@@ -1433,7 +1528,7 @@ async function uploadFoto() {
 }
 
 // ============================================================
-// LAPORAN HASIL BELAJAR
+// LAPORAN PDF (Portrait)
 // ============================================================
 async function loadLaporanList() {
   const siswaId = currentLoggedInUser.siswa_id;
@@ -1485,8 +1580,8 @@ async function loadLaporanList() {
         </div>
       </div>
       ${sl.tersedia
-        ? `<button onclick="lihatLaporanLevel('${esc(sl.nama)}')" class="w-full text-white font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-xs" style="background: ${sl.warna}; box-shadow: 0 8px 20px -4px ${sl.warna}60;">
-            📄 Lihat & Download Laporan PDF
+        ? `<button onclick="previewLaporan('${esc(sl.nama)}')" class="w-full text-white font-bold py-3 rounded-2xl active:scale-[0.98] transition-all text-xs" style="background: ${sl.warna}; box-shadow: 0 8px 20px -4px ${sl.warna}60;">
+            📄 Preview & Download Laporan PDF
           </button>`
         : `<div class="bg-slate-50 text-slate-500 text-center text-[11px] font-semibold py-3 rounded-2xl">
             Belum ada penilaian di level ini
@@ -1494,8 +1589,7 @@ async function loadLaporanList() {
     </div>`).join('');
 }
 
-async function lihatLaporanLevel(namaLevel) {
-  const containerEl = document.getElementById("laporan-container-preview");
+async function previewLaporan(namaLevel) {
   const loading = showLoading("Memuat laporan...");
   try {
     const res = await fetch(`${SCRIPT_URL}?action=getLaporan&siswaId=${currentLoggedInUser.siswa_id}&level=${encodeURIComponent(namaLevel)}`).then(r => r.json());
@@ -1505,9 +1599,9 @@ async function lihatLaporanLevel(namaLevel) {
       return;
     }
     laporanData = res.data;
-    containerEl.classList.remove("hidden");
-    await renderLaporan(res.data);
-    containerEl.scrollIntoView({ behavior: "smooth", block: "start" });
+    await renderLaporanPreview(res.data);
+    document.getElementById("pdf-modal-subtitle").innerText = `Laporan ${res.data.level.nama} - ${res.data.siswa.nama}`;
+    document.getElementById("modal-pdf").classList.remove("hidden");
   } catch (err) {
     loading.close();
     console.error(err);
@@ -1515,232 +1609,225 @@ async function lihatLaporanLevel(namaLevel) {
   }
 }
 
+function closeModalPdf() {
+  document.getElementById("modal-pdf").classList.add("hidden");
+}
+
 async function generateQRCode(text) {
   try {
     const canvas = document.createElement("canvas");
-    await QRCode.toCanvas(canvas, text, {
-      width: 300, margin: 1,
-      color: { dark: "#0f172a", light: "#ffffff" },
-      errorCorrectionLevel: "H"
-    });
+    await QRCode.toCanvas(canvas, text, { width: 300, margin: 1, color: { dark: "#0f172a", light: "#ffffff" }, errorCorrectionLevel: "H" });
     return canvas.toDataURL("image/png");
-  } catch (err) {
-    console.error("QR Error:", err);
-    return "";
-  }
+  } catch (err) { console.error("QR Error:", err); return ""; }
 }
 
-async function renderLaporan(data) {
-  const container = document.getElementById("laporan-container-preview");
+async function renderLaporanPreview(data) {
+  const container = document.getElementById("pdf-preview-content");
   const s = data.siswa;
   const lv = data.level;
   const predikatColor = data.predikatColor;
-
-  const detailNilai = data.detailNilai;
-  const chartLabels = detailNilai.map(n => `P${n.pertemuan}`);
-  const chartData = detailNilai.map(n => n.skor);
-
   const verifyUrl = `${SCRIPT_URL}?action=getLaporan&siswaId=${s.id}&level=${encodeURIComponent(lv.nama)}`;
   const qrDataUrl = await generateQRCode(verifyUrl);
 
-  const fotoHtml = s.foto_url
-    ? `<img src="${esc(s.foto_url)}" alt="Foto" style="width: 25mm; height: 25mm; border-radius: 50%; object-fit: cover; border: 1mm solid ${predikatColor};">`
-    : `<div style="width: 25mm; height: 25mm; border-radius: 50%; background: linear-gradient(135deg, #7c3aed, #a855f7); display: flex; align-items: center; justify-content: center; font-size: 10mm; color: white; font-weight: 900; border: 1mm solid ${predikatColor};">${esc(s.nama).charAt(0).toUpperCase()}</div>`;
-
+  // PAGE 1: COVER + RINGKASAN
   const page1 = `
-    <div class="laporan-page">
-      <div class="laporan-border-outer" style="border-color: ${lv.warna};"></div>
-      <div class="laporan-border-inner" style="border-color: ${lv.warna};"></div>
-
-      <div style="position: absolute; inset: 15mm; display: flex; flex-direction: column; align-items: center; justify-content: space-between; text-align: center;">
-        
-        <div style="width: 100%;">
-          <div style="display: flex; align-items: center; justify-content: center; gap: 4mm; margin-bottom: 4mm;">
-            <div style="width: 14mm; height: 14mm; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-radius: 3mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 7mm;">🤖</div>
-            <div style="text-align: left;">
-              <div style="font-size: 5mm; font-weight: 900; color: ${lv.warna}; letter-spacing: 1px;">RoboClass</div>
-              <div style="font-size: 2mm; color: #64748b; font-weight: 600; letter-spacing: 1.5px;">ROBOTIC CLASS MANAGEMENT</div>
-            </div>
+    <div class="pdf-page portrait">
+      <div class="pdf-border" style="border-color: ${lv.warna};">
+        <div class="pdf-header">
+          <div class="pdf-logo" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});">🤖</div>
+          <div>
+            <div class="pdf-brand" style="color: ${lv.warna};">RoboClass</div>
+            <div class="pdf-brand-sub">ROBOTIC CLASS MANAGEMENT</div>
           </div>
-          <div style="width: 50mm; height: 0.8mm; background: linear-gradient(90deg, transparent, ${predikatColor}, transparent); margin: 0 auto;"></div>
+        </div>
+        <div class="pdf-line" style="background: linear-gradient(90deg, transparent, ${predikatColor}, transparent);"></div>
+
+        <div class="pdf-title-section">
+          <div class="pdf-title-label">LAPORAN</div>
+          <div class="pdf-title-main">HASIL BELAJAR</div>
+          <div class="pdf-title-sub">CHILD LEARNING REPORT</div>
         </div>
 
-        <div style="margin: 3mm 0;">${fotoHtml}</div>
-
-        <div style="margin: 2mm 0;">
-          <div style="font-size: 4mm; color: #64748b; letter-spacing: 5px; font-weight: 600;">LAPORAN</div>
-          <div style="font-size: 11mm; font-weight: 900; color: #0f172a; letter-spacing: 3px; line-height: 1; margin-top: 1mm;">HASIL BELAJAR</div>
-          <div style="font-size: 2.5mm; color: #94a3b8; letter-spacing: 3px; margin-top: 1mm;">CHILD LEARNING REPORT</div>
+        <div class="pdf-photo-section">
+          ${s.foto_url
+            ? `<img src="${esc(s.foto_url)}" class="pdf-photo" style="border-color: ${predikatColor};" onerror="this.style.display='none'">`
+            : `<div class="pdf-photo pdf-photo-placeholder" style="border-color: ${predikatColor}; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});">${esc(s.nama).charAt(0).toUpperCase()}</div>`}
         </div>
 
-        <div style="width: 100%;">
-          <div style="font-size: 2.8mm; color: #64748b; margin-bottom: 1mm;">Nama Anak:</div>
-          <div style="font-size: 9mm; font-weight: 900; color: ${predikatColor}; letter-spacing: 1px; line-height: 1.1; margin-bottom: 1mm;">${esc(s.nama)}</div>
-          <div style="width: 80mm; height: 0.4mm; background: linear-gradient(90deg, transparent, ${predikatColor}, transparent); margin: 0 auto 1mm;"></div>
-          <div style="font-size: 2.5mm; color: #64748b;">ID: ${esc(s.id)} • Usia: ${s.usia} tahun • Wali: ${esc(s.orangTua)}</div>
+        <div class="pdf-student-section">
+          <div class="pdf-student-label">Nama Anak</div>
+          <div class="pdf-student-name" style="color: ${predikatColor};">${esc(s.nama)}</div>
+          <div class="pdf-student-line" style="background: linear-gradient(90deg, transparent, ${predikatColor}, transparent);"></div>
+          <div class="pdf-student-info">ID: ${esc(s.id)} • Usia: ${s.usia} tahun • Wali: ${esc(s.orangTua)}</div>
         </div>
 
-        <div style="max-width: 180mm; margin: 2mm 0;">
-          <div style="font-size: 3mm; color: #475569; line-height: 1.6;">
-            telah mengikuti program <b style="color: ${lv.warna};">${lv.nama}</b>
+        <div class="pdf-summary">
+          <div class="pdf-summary-text">
+            telah mengikuti program <b style="color: ${lv.warna};">${esc(lv.nama)}</b>
             (Pertemuan ${lv.min}-${lv.max}) dengan capaian
           </div>
-          <div style="margin: 2mm 0;">
-            <span style="display: inline-block; padding: 1.5mm 6mm; background: ${predikatColor}; color: white; border-radius: 3mm; font-size: 4.5mm; font-weight: 900; letter-spacing: 2px;">
-              ${data.predikatIcon} ${data.predikat}
-            </span>
-          </div>
-          <div style="font-size: 3mm; color: #475569;">
+          <div class="pdf-predikat" style="background: ${predikatColor};">${data.predikatIcon} ${data.predikat}</div>
+          <div class="pdf-summary-text">
             Total perolehan <b style="color: ${lv.warna};">${data.grandTotal} ⭐</b> dari maksimal ${data.skorMaksimalLevel} ⭐ (${data.persenAkhir}%)
           </div>
         </div>
 
-        <div style="width: 100%; display: flex; align-items: flex-end; justify-content: space-between; gap: 4mm;">
-          <div style="text-align: center; flex: 1;">
-            <div style="font-size: 2.5mm; color: #64748b; margin-bottom: 1mm;">Tanggal Cetak</div>
-            <div style="font-size: 3mm; font-weight: 700; color: #0f172a;">${data.tanggalCetak}</div>
+        <div class="pdf-footer">
+          <div class="pdf-footer-col">
+            <div class="pdf-footer-label">Tanggal Cetak</div>
+            <div class="pdf-footer-value">${data.tanggalCetak}</div>
           </div>
-
-          <div style="text-align: center; flex: 1;">
-            <div style="font-size: 3mm; font-weight: 700; color: #0f172a; border-bottom: 0.4mm solid #0f172a; padding-bottom: 1mm; min-width: 35mm;">Arni Irenawati, S.Si</div>
-            <div style="font-size: 2.5mm; color: #64748b; margin-top: 1mm;">Kepala Program RoboClass</div>
+          <div class="pdf-footer-col">
+            <div class="pdf-signature">Arni Irenawati, S.Si</div>
+            <div class="pdf-footer-label">Kepala Program RoboClass</div>
           </div>
-
-          <div style="text-align: center; flex: 0.5;">
-            <img src="${qrDataUrl}" alt="QR" style="width: 18mm; height: 18mm; border: 0.4mm solid #e2e8f0; padding: 0.8mm; background: white; border-radius: 1.5mm;">
-            <div style="font-size: 1.8mm; color: #94a3b8; margin-top: 0.8mm;">Scan verifikasi</div>
+          <div class="pdf-footer-col qr">
+            <img src="${qrDataUrl}" class="pdf-qr">
+            <div class="pdf-footer-label">Scan verifikasi</div>
           </div>
         </div>
       </div>
     </div>`;
 
-  const page2 = `
-    <div class="laporan-page">
-      <div class="laporan-border-outer" style="border-color: ${lv.warna};"></div>
-      <div class="laporan-border-inner" style="border-color: ${lv.warna};"></div>
+  // PAGE 2+: DETAIL PER PERTEMUAN
+  const detailPages = data.detailPertemuan.filter(dp => dp.countDomain > 0).map(dp => {
+    const domainRows = DOMAIN_ORDER.map(dom => {
+      const d = dp.domains[dom];
+      if (!d || d.skor === 0) return '';
+      return `
+        <tr>
+          <td class="pdf-td-domain">${esc(dom)}</td>
+          <td class="pdf-td-stars">${"★".repeat(d.skor)}<span style="color:#e2e8f0">${"★".repeat(4-d.skor)}</span></td>
+          <td class="pdf-td-skor">${d.skor}/4</td>
+        </tr>`;
+    }).join('');
 
-      <div style="position: absolute; inset: 12mm; display: flex; flex-direction: column;">
-        <div style="display: flex; align-items: center; justify-content: space-between; border-bottom: 0.8mm solid ${predikatColor}; padding-bottom: 2mm; margin-bottom: 3mm;">
-          <div style="display: flex; align-items: center; gap: 2.5mm;">
-            <div style="width: 10mm; height: 10mm; background: linear-gradient(135deg, ${lv.warna}, ${predikatColor}); border-radius: 2.5mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 5mm;">${lv.icon}</div>
-            <div>
-              <div style="font-size: 4mm; font-weight: 900; color: ${lv.warna};">DETAIL CAPAIAN</div>
-              <div style="font-size: 2.2mm; color: #64748b;">${lv.nama} • Pertemuan ${lv.min}-${lv.max}</div>
+    const deskripsiDomains = DOMAIN_ORDER.map(dom => {
+      const d = dp.domains[dom];
+      if (!d || d.skor === 0) return '';
+      const labels = {1:"Perlu Banyak Bantuan",2:"Dengan Bimbingan",3:"Mandiri",4:"Berkembang Sangat Baik"};
+      return `
+        <div class="pdf-desc-item">
+          <div class="pdf-desc-domain">${esc(dom)} ${"★".repeat(d.skor)}<span style="color:#e2e8f0">${"★".repeat(4-d.skor)}</span></div>
+          <div class="pdf-desc-label">${labels[d.skor]}${d.catatan ? ` — "${esc(d.catatan)}"` : ''}</div>
+        </div>`;
+    }).join('');
+
+    return `
+      <div class="pdf-page portrait">
+        <div class="pdf-border" style="border-color: ${lv.warna};">
+          <div class="pdf-detail-header" style="border-bottom-color: ${predikatColor};">
+            <div class="pdf-detail-badge" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});">P${dp.pertemuan}</div>
+            <div class="pdf-detail-title">
+              <div class="pdf-detail-judul">${esc(dp.judul_materi)}</div>
+              <div class="pdf-detail-sub">${esc(dp.deskripsi)}</div>
+            </div>
+            <div class="pdf-detail-total">
+              <div class="pdf-detail-total-val" style="color: ${predikatColor};">${dp.total}</div>
+              <div class="pdf-detail-total-lbl">dari ${dp.countDomain * 4}⭐</div>
             </div>
           </div>
-          <div style="text-align: right;">
-            <div style="font-size: 3mm; font-weight: 900; color: #0f172a;">${esc(s.nama)}</div>
-            <div style="font-size: 2.2mm; color: #64748b;">ID: ${esc(s.id)} • ${data.tanggalCetak}</div>
+
+          <div class="pdf-detail-section-title">📊 Rincian Penilaian 5 Domain</div>
+          <table class="pdf-detail-table">
+            <thead>
+              <tr>
+                <th>Domain</th>
+                <th style="width: 100px;">Bintang</th>
+                <th style="width: 60px;">Skor</th>
+              </tr>
+            </thead>
+            <tbody>${domainRows}</tbody>
+          </table>
+
+          <div class="pdf-detail-section-title">📝 Deskripsi Capaian</div>
+          <div class="pdf-desc-list">${deskripsiDomains}</div>
+        </div>
+      </div>`;
+  }).join('');
+
+  // PAGE TERAKHIR: REKAP
+  const allDetail = data.detailPertemuan.filter(dp => dp.countDomain > 0);
+  const pageRekap = `
+    <div class="pdf-page portrait">
+      <div class="pdf-border" style="border-color: ${lv.warna};">
+        <div class="pdf-detail-header" style="border-bottom-color: ${predikatColor};">
+          <div class="pdf-detail-badge" style="background: linear-gradient(135deg, ${lv.warna}, ${predikatColor});">📊</div>
+          <div class="pdf-detail-title">
+            <div class="pdf-detail-judul">Rekap Keseluruhan</div>
+            <div class="pdf-detail-sub">${esc(lv.nama)} • Pertemuan ${lv.min}-${lv.max}</div>
           </div>
         </div>
 
-        <div style="display: grid; grid-template-columns: 1fr 1.2fr; gap: 4mm; flex: 1; overflow: hidden;">
-          <div style="display: flex; flex-direction: column;">
-            <div style="font-size: 2.8mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.4mm solid #e2e8f0;">📈 GRAFIK PERKEMBANGAN</div>
-            <div style="background: #fafafe; border: 0.4mm solid #e2e8f0; border-radius: 2mm; padding: 2mm; flex: 1; display: flex; align-items: center; justify-content: center; min-height: 70mm;">
-              <canvas id="laporanChart" style="max-width: 100%; max-height: 70mm;"></canvas>
-            </div>
-            <div style="margin-top: 2mm; background: linear-gradient(135deg, ${predikatColor}15, ${predikatColor}05); border-left: 0.8mm solid ${predikatColor}; padding: 2mm; border-radius: 1mm;">
-              <div style="font-size: 2.2mm; color: #64748b; font-weight: 700; text-transform: uppercase;">Total Perolehan</div>
-              <div style="font-size: 5mm; font-weight: 900; color: ${predikatColor};">${data.grandTotal} ⭐<span style="font-size: 2.5mm; color: #94a3b8;">/${data.skorMaksimalLevel} ⭐</span> <span style="font-size: 2.5mm; color: #64748b;">(${data.persenAkhir}%)</span></div>
-            </div>
+        <div class="pdf-rekap-summary">
+          <div class="pdf-rekap-box" style="background: linear-gradient(135deg, ${predikatColor}15, ${predikatColor}05); border-left: 3px solid ${predikatColor};">
+            <div class="pdf-rekap-label">Total Bintang</div>
+            <div class="pdf-rekap-value" style="color: ${predikatColor};">${data.grandTotal} / ${data.skorMaksimalLevel} ⭐</div>
+            <div class="pdf-rekap-sub">${data.persenAkhir}% • ${data.predikatIcon} ${data.predikat}</div>
           </div>
-
-          <div style="display: flex; flex-direction: column; overflow: hidden;">
-            <div style="font-size: 2.8mm; font-weight: 900; color: #0f172a; margin-bottom: 2mm; padding-bottom: 1mm; border-bottom: 0.4mm solid #e2e8f0;">📋 RINCIAN PENILAIAN</div>
-            <div style="overflow-y: auto; flex: 1;">
-              <table style="width: 100%; border-collapse: collapse; font-size: 2.2mm;">
-                <thead>
-                  <tr style="background: #f1f5f9;">
-                    <th style="padding: 1.2mm; text-align: center; color: #475569; font-weight: 700; width: 10%;">P</th>
-                    <th style="padding: 1.2mm; text-align: left; color: #475569; font-weight: 700;">Domain / Indikator</th>
-                    <th style="padding: 1.2mm; text-align: center; color: #475569; font-weight: 700; width: 22%;">Bintang</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  ${detailNilai.filter(n => n.skor > 0).map(n => `
-                    <tr style="border-bottom: 0.2mm solid #e2e8f0;">
-                      <td style="padding: 1mm; text-align: center; font-weight: 700; color: ${lv.warna};">${n.pertemuan}</td>
-                      <td style="padding: 1mm; color: #334155;">
-                        <div style="font-weight: 600;">${esc(n.domain)}</div>
-                        <div style="font-size: 1.9mm; color: #64748b;">${esc(n.indikator)}</div>
-                        ${n.catatan ? `<div style="font-size: 1.8mm; color: #94a3b8; font-style: italic; margin-top: 0.5mm;">"${esc(n.catatan)}"</div>` : ''}
-                      </td>
-                      <td style="padding: 1mm; text-align: center;">
-                        <span style="color:#f59e0b;font-size:2.5mm;">${"★".repeat(n.skor)}${"<span style='color:#e2e8f0'>★</span>".repeat(4-n.skor)}</span>
-                        <div style="font-size: 1.8mm; color: #64748b;">${n.skor}/4</div>
-                      </td>
-                    </tr>`).join('')}
-                </tbody>
-              </table>
-            </div>
-            <div style="margin-top: 2mm; background: #f8fafc; border-radius: 1mm; padding: 2mm; display: flex; justify-content: space-between; font-size: 2.2mm; color: #475569;">
-              <span>Rata-rata bintang per pertemuan</span>
-              <span style="font-weight: 900; color: ${lv.warna};">${data.totalPertemuan > 0 ? (data.grandTotal/data.totalPertemuan).toFixed(1) : 0} ⭐</span>
-            </div>
+          <div class="pdf-rekap-box" style="background: #f0f9ff; border-left: 3px solid #3b82f6;">
+            <div class="pdf-rekap-label">Pertemuan Dinilai</div>
+            <div class="pdf-rekap-value" style="color: #3b82f6;">${data.totalPertemuan} / ${data.totalPertemuanLevel}</div>
+            <div class="pdf-rekap-sub">Rata-rata ${data.totalPertemuan > 0 ? (data.grandTotal/data.totalPertemuan).toFixed(1) : 0}⭐ per pertemuan</div>
           </div>
         </div>
 
-        <div style="margin-top: 2mm; border-top: 0.4mm solid #e2e8f0; padding-top: 1.5mm; display: flex; justify-content: space-between; font-size: 2mm; color: #94a3b8;">
-          <span>${data.totalPertemuan}/${data.totalPertemuanLevel} pertemuan dinilai • Total: <b style="color: ${lv.warna};">${data.grandTotal}⭐/${data.skorMaksimalLevel}⭐</b> (${data.persenAkhir}%)</span>
-          <span>Laporan No: RC-${lv.nama.replace(/\s+/g, '').substring(0,6).toUpperCase()}-${s.id}-${new Date().getFullYear()}</span>
+        <div class="pdf-detail-section-title">📋 Rata-rata per Domain</div>
+        <table class="pdf-detail-table">
+          <thead>
+            <tr>
+              <th>Domain</th>
+              <th style="width: 100px;">Total</th>
+              <th style="width: 80px;">Rata-rata</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${DOMAIN_ORDER.map(dom => {
+              let total = 0, count = 0;
+              allDetail.forEach(dp => {
+                const d = dp.domains[dom];
+                if (d && d.skor > 0) { total += d.skor; count++; }
+              });
+              const avg = count > 0 ? (total / count).toFixed(2) : 0;
+              return `
+                <tr>
+                  <td class="pdf-td-domain">${esc(dom)}</td>
+                  <td class="pdf-td-skor">${total}/${count * 4}</td>
+                  <td class="pdf-td-skor">${avg}⭐</td>
+                </tr>`;
+            }).join('')}
+          </tbody>
+        </table>
+
+        <div class="pdf-detail-section-title">📅 Timeline Pertemuan</div>
+        <div class="pdf-timeline">
+          ${allDetail.map(dp => `
+            <div class="pdf-timeline-item">
+              <div class="pdf-timeline-marker" style="background: ${predikatColor};">P${dp.pertemuan}</div>
+              <div class="pdf-timeline-content">
+                <div class="pdf-timeline-judul">${esc(dp.judul_materi)}</div>
+                <div class="pdf-timeline-meta">${dp.countDomain} domain • Total ${dp.total}/${dp.countDomain*4}⭐ • Rata ${dp.rata}</div>
+              </div>
+            </div>
+          `).join('')}
         </div>
       </div>
     </div>`;
 
-  container.innerHTML = `
-    <div class="flex items-center justify-between no-print mb-3">
-      <h3 class="text-sm font-bold text-slate-900">📄 Preview Laporan — ${esc(lv.nama)}</h3>
-      <button onclick="downloadLaporan()" class="gradient-purple text-white px-4 py-2.5 rounded-2xl shadow-lg shadow-purple-200 active:scale-95 transition-all flex items-center space-x-2 text-xs font-bold">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.5" stroke-linecap="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M7 10l5 5 5-5M12 15V3"/></svg>
-        <span>Download PDF</span>
-      </button>
-    </div>
-    ${page1}${page2}`;
-
-  setTimeout(() => {
-    const canvas = document.getElementById("laporanChart");
-    if (canvas && chartLabels.length > 0) {
-      const ctx = canvas.getContext("2d");
-      new Chart(ctx, {
-        type: 'line',
-        data: {
-          labels: chartLabels,
-          datasets: [{
-            label: 'Bintang',
-            data: chartData,
-            borderColor: lv.warna,
-            backgroundColor: lv.warna + '20',
-            borderWidth: 2.5,
-            pointBackgroundColor: lv.warna,
-            pointBorderColor: '#fff',
-            pointBorderWidth: 1.5,
-            pointRadius: 4,
-            fill: true, tension: 0.4
-          }]
-        },
-        options: {
-          responsive: true, maintainAspectRatio: false,
-          plugins: { legend: { display: false } },
-          scales: {
-            y: { min: 0, max: 4, ticks: { stepSize: 1, font: { size: 10 } }, grid: { color: '#f1f5f9' } },
-            x: { grid: { display: false }, ticks: { font: { size: 10 } } }
-          }
-        }
-      });
-    }
-  }, 200);
+  container.innerHTML = page1 + detailPages + pageRekap;
 }
 
-async function downloadLaporan() {
+async function downloadLaporanPDF() {
   if (!laporanData) { await showPopup("warning", "Data Belum Siap", "Laporan belum dimuat."); return; }
   const ok = await showConfirm(
-    "Cetak Laporan 📄",
-    "Pada dialog print, pilih:<br>• Tujuan: <b>Save as PDF</b><br>• Ukuran: <b>A4</b><br>• Orientasi: <b>Landscape</b><br>• Centang <b>Background graphics</b>",
+    "Cetak Laporan PDF 📄",
+    "Pada dialog print:<br>• Tujuan: <b>Save as PDF</b><br>• Ukuran: <b>A4</b><br>• Orientasi: <b>Portrait</b><br>• Centang <b>Background graphics</b>",
     "Lanjut Cetak", "Batal"
   );
   if (!ok) return;
-  setTimeout(() => window.print(), 300);
+  // Beri waktu tutup modal dulu
+  closeModalPdf();
+  setTimeout(() => window.print(), 400);
 }
 
-console.log("RoboClass Manager v3 loaded");
+console.log("RoboClass Manager v4 loaded");
