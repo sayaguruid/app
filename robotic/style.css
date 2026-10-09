@@ -5,47 +5,33 @@
 body { font-family: 'Plus Jakarta Sans', sans-serif; overscroll-behavior-y: none; background: #fafafe; }
 ::-webkit-scrollbar { width: 0; height: 0; }
 
-/* ============================================================
-   ANIMASI
-   ============================================================ */
+/* ANIMASI */
 .fade-in { animation: fadeIn 0.3s ease-out; }
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
 .slide-up { animation: slideUp 0.35s cubic-bezier(0.4, 0, 0.2, 1); }
 @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
-
 .scale-in { animation: scaleIn 0.25s ease-out; }
 @keyframes scaleIn { from { opacity: 0; transform: scale(0.95); } to { opacity: 1; transform: scale(1); } }
 
-/* ============================================================
-   GRADIENT
-   ============================================================ */
+/* GRADIENT */
 .gradient-purple { background: linear-gradient(135deg, #7c3aed 0%, #a855f7 50%, #6366f1 100%); }
 .gradient-blue { background: linear-gradient(135deg, #3b82f6 0%, #6366f1 100%); }
 .gradient-green { background: linear-gradient(135deg, #10b981 0%, #059669 100%); }
 .gradient-orange { background: linear-gradient(135deg, #f59e0b 0%, #ea580c 100%); }
 
-/* ============================================================
-   NAV
-   ============================================================ */
+/* NAV */
 .nav-active { color: #7c3aed !important; }
 .nav-active svg { transform: scale(1.1); }
 .nav-btn svg { transition: transform 0.2s; }
 
-/* ============================================================
-   SHADOW
-   ============================================================ */
+/* SHADOW */
 .shadow-soft { box-shadow: 0 4px 20px -4px rgba(124, 58, 237, 0.15); }
 
-/* ============================================================
-   INPUT
-   ============================================================ */
+/* INPUT */
 input[type="radio"] { accent-color: #7c3aed; }
 input, select, textarea { font-family: inherit; }
 
-/* ============================================================
-   POPUP
-   ============================================================ */
+/* POPUP */
 .popup-overlay {
   position: fixed; inset: 0; z-index: 300;
   background: rgba(15, 23, 42, 0.5);
@@ -54,7 +40,6 @@ input, select, textarea { font-family: inherit; }
   padding: 1.5rem; animation: overlayIn 0.2s ease-out;
 }
 @keyframes overlayIn { from { opacity: 0; } to { opacity: 1; } }
-
 .popup-box {
   background: white; border-radius: 1.75rem;
   width: 100%; max-width: 22rem; padding: 1.75rem;
@@ -66,7 +51,6 @@ input, select, textarea { font-family: inherit; }
   from { opacity: 0; transform: scale(0.85) translateY(20px); }
   to { opacity: 1; transform: scale(1) translateY(0); }
 }
-
 .popup-icon {
   width: 4rem; height: 4rem; border-radius: 1.5rem;
   display: inline-flex; align-items: center; justify-content: center;
@@ -80,9 +64,7 @@ input, select, textarea { font-family: inherit; }
 @keyframes pulseLoad { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.08); } }
 @keyframes spin { to { transform: rotate(360deg); } }
 
-/* ============================================================
-   TOAST
-   ============================================================ */
+/* TOAST */
 .toast {
   position: fixed; top: calc(env(safe-area-inset-top) + 1rem);
   left: 50%; transform: translateX(-50%);
@@ -99,34 +81,170 @@ input, select, textarea { font-family: inherit; }
 @keyframes toastOut { to { opacity: 0; transform: translate(-50%, -20px); } }
 
 /* ============================================================
-   LAPORAN HASIL BELAJAR
+   PDF PORTRAIT PREVIEW
    ============================================================ */
-.laporan-page {
-  width: 297mm; height: 210mm; background: white;
-  position: relative; overflow: hidden;
-  page-break-after: always; margin: 0 auto 20px;
-  box-shadow: 0 10px 40px rgba(0,0,0,0.15); border-radius: 8px;
-}
-.laporan-page:last-child { page-break-after: auto; }
-.laporan-border-outer { position: absolute; inset: 8mm; border: 4px solid #7c3aed; border-radius: 8mm; pointer-events: none; }
-.laporan-border-inner { position: absolute; inset: 10mm; border: 2px solid #a855f7; border-radius: 6mm; pointer-events: none; }
-.laporan-preview-wrapper {
-  overflow-x: auto; overflow-y: hidden;
-  padding: 10px 0; -webkit-overflow-scrolling: touch;
+.pdf-page.portrait {
+  width: 210mm; min-height: 297mm; background: white;
+  position: relative; margin: 0 auto 20px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.2); border-radius: 4px;
+  padding: 12mm;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
+.pdf-border {
+  border: 3px solid #7c3aed;
+  border-radius: 6mm;
+  padding: 10mm;
+  min-height: calc(297mm - 24mm);
+  display: flex;
+  flex-direction: column;
+  gap: 5mm;
+}
+
+/* Header */
+.pdf-header { display: flex; align-items: center; gap: 4mm; justify-content: center; }
+.pdf-logo { width: 14mm; height: 14mm; border-radius: 3mm; display: flex; align-items: center; justify-content: center; color: white; font-size: 7mm; }
+.pdf-brand { font-size: 5mm; font-weight: 900; letter-spacing: 1px; }
+.pdf-brand-sub { font-size: 2mm; color: #64748b; font-weight: 600; letter-spacing: 1.5px; }
+.pdf-line { height: 0.8mm; margin: 0 auto; width: 60mm; }
+
+/* Title */
+.pdf-title-section { text-align: center; margin: 2mm 0; }
+.pdf-title-label { font-size: 4mm; color: #64748b; letter-spacing: 5px; font-weight: 600; }
+.pdf-title-main { font-size: 11mm; font-weight: 900; color: #0f172a; letter-spacing: 3px; line-height: 1; margin-top: 1mm; }
+.pdf-title-sub { font-size: 2.5mm; color: #94a3b8; letter-spacing: 3px; margin-top: 1mm; }
+
+/* Photo */
+.pdf-photo-section { display: flex; justify-content: center; margin: 2mm 0; }
+.pdf-photo { width: 30mm; height: 30mm; border-radius: 50%; object-fit: cover; border: 1.5mm solid #7c3aed; }
+.pdf-photo-placeholder { display: flex; align-items: center; justify-content: center; color: white; font-weight: 900; font-size: 14mm; }
+
+/* Student */
+.pdf-student-section { text-align: center; }
+.pdf-student-label { font-size: 3mm; color: #64748b; margin-bottom: 1mm; }
+.pdf-student-name { font-size: 9mm; font-weight: 900; letter-spacing: 1px; line-height: 1.1; margin-bottom: 1.5mm; }
+.pdf-student-line { height: 0.5mm; width: 80mm; margin: 0 auto 1.5mm; }
+.pdf-student-info { font-size: 2.8mm; color: #64748b; }
+
+/* Summary */
+.pdf-summary { text-align: center; max-width: 160mm; margin: 3mm auto; }
+.pdf-summary-text { font-size: 3.2mm; color: #475569; line-height: 1.6; }
+.pdf-predikat {
+  display: inline-block; padding: 1.5mm 6mm;
+  color: white; border-radius: 3mm; font-size: 5mm;
+  font-weight: 900; letter-spacing: 2px; margin: 2.5mm 0;
+}
+
+/* Footer */
+.pdf-footer {
+  display: flex; align-items: flex-end; justify-content: space-between;
+  gap: 4mm; margin-top: auto; padding-top: 3mm;
+  border-top: 0.3mm solid #e2e8f0;
+}
+.pdf-footer-col { text-align: center; flex: 1; }
+.pdf-footer-col.qr { flex: 0.5; }
+.pdf-footer-label { font-size: 2.3mm; color: #64748b; }
+.pdf-footer-value { font-size: 3mm; font-weight: 700; color: #0f172a; }
+.pdf-signature {
+  font-size: 3mm; font-weight: 700; color: #0f172a;
+  border-bottom: 0.4mm solid #0f172a;
+  padding-bottom: 1mm; min-width: 35mm;
+  display: inline-block;
+}
+.pdf-qr { width: 18mm; height: 18mm; border: 0.3mm solid #e2e8f0; padding: 0.5mm; background: white; border-radius: 1.5mm; }
+
+/* Detail page */
+.pdf-detail-header {
+  display: flex; align-items: center; gap: 3mm;
+  border-bottom: 0.8mm solid #7c3aed;
+  padding-bottom: 3mm; margin-bottom: 3mm;
+}
+.pdf-detail-badge {
+  width: 12mm; height: 12mm; border-radius: 2.5mm;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 5mm; font-weight: 900;
+}
+.pdf-detail-title { flex: 1; }
+.pdf-detail-judul { font-size: 4.5mm; font-weight: 900; color: #0f172a; }
+.pdf-detail-sub { font-size: 2.5mm; color: #64748b; margin-top: 0.5mm; }
+.pdf-detail-total { text-align: right; }
+.pdf-detail-total-val { font-size: 6mm; font-weight: 900; line-height: 1; }
+.pdf-detail-total-lbl { font-size: 2.2mm; color: #94a3b8; }
+
+.pdf-detail-section-title {
+  font-size: 3mm; font-weight: 900; color: #0f172a;
+  margin: 3mm 0 2mm; padding-bottom: 1mm;
+  border-bottom: 0.3mm solid #e2e8f0;
+}
+
+.pdf-detail-table {
+  width: 100%; border-collapse: collapse;
+  font-size: 2.8mm;
+}
+.pdf-detail-table th {
+  padding: 2mm; text-align: left; color: #475569;
+  font-weight: 700; background: #f1f5f9;
+  font-size: 2.5mm;
+}
+.pdf-detail-table th:nth-child(2),
+.pdf-detail-table th:nth-child(3) { text-align: center; }
+.pdf-detail-table td { padding: 2mm; border-bottom: 0.2mm solid #e2e8f0; }
+.pdf-td-domain { color: #334155; font-weight: 600; }
+.pdf-td-stars { text-align: center; color: #f59e0b; font-size: 3.5mm; letter-spacing: 1px; }
+.pdf-td-skor { text-align: center; font-weight: 700; color: #475569; }
+
+.pdf-desc-list { display: flex; flex-direction: column; gap: 2mm; }
+.pdf-desc-item {
+  background: #f8fafc; border-left: 2px solid #7c3aed;
+  padding: 2mm 3mm; border-radius: 1mm;
+}
+.pdf-desc-domain { font-size: 2.8mm; font-weight: 700; color: #0f172a; }
+.pdf-desc-label { font-size: 2.5mm; color: #64748b; margin-top: 0.5mm; }
+
+/* Rekap page */
+.pdf-rekap-summary { display: grid; grid-template-columns: 1fr 1fr; gap: 4mm; margin-bottom: 3mm; }
+.pdf-rekap-box { padding: 3mm; border-radius: 2mm; }
+.pdf-rekap-label { font-size: 2.3mm; color: #64748b; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
+.pdf-rekap-value { font-size: 6mm; font-weight: 900; margin: 1mm 0; }
+.pdf-rekap-sub { font-size: 2.3mm; color: #64748b; }
+
+.pdf-timeline { display: flex; flex-direction: column; gap: 2mm; }
+.pdf-timeline-item { display: flex; gap: 3mm; align-items: flex-start; }
+.pdf-timeline-marker {
+  width: 10mm; height: 10mm; border-radius: 2mm;
+  display: flex; align-items: center; justify-content: center;
+  color: white; font-size: 3mm; font-weight: 900; shrink: 0;
+  flex-shrink: 0;
+}
+.pdf-timeline-content { flex: 1; padding-bottom: 2mm; border-bottom: 0.2mm solid #f1f5f9; }
+.pdf-timeline-judul { font-size: 3mm; font-weight: 700; color: #0f172a; }
+.pdf-timeline-meta { font-size: 2.3mm; color: #64748b; margin-top: 0.5mm; }
+
+/* Preview wrapper */
+.laporan-preview-wrapper { overflow-x: auto; overflow-y: hidden; padding: 10px 0; }
+
 /* ============================================================
-   PRINT
+   PRINT - A4 PORTRAIT
    ============================================================ */
 @media print {
   body { background: white !important; }
   body * { visibility: hidden; }
-  #laporan-container-preview, #laporan-container-preview * { visibility: visible; }
-  #laporan-container-preview { position: absolute; top: 0; left: 0; width: 100%; }
+  #modal-pdf, #modal-pdf * { visibility: visible; }
+  #modal-pdf {
+    position: absolute; top: 0; left: 0; width: 100%;
+    background: white !important; padding: 0 !important;
+    display: block !important;
+  }
+  #modal-pdf > div:first-child { display: none !important; }
+  #modal-pdf > div:nth-child(2) {
+    background: white !important; padding: 0 !important; overflow: visible !important;
+  }
   .no-print { display: none !important; }
-  .laporan-page {
+  .pdf-page.portrait {
     box-shadow: none !important; margin: 0 !important;
     border-radius: 0 !important; page-break-after: always;
+    padding: 8mm !important;
   }
-  @page { size: A4 landscape; margin: 0; }
+  .pdf-page.portrait:last-child { page-break-after: auto; }
+  @page { size: A4 portrait; margin: 0; }
 }
