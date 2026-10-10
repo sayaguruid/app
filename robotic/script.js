@@ -447,7 +447,7 @@ function onPilihSiswa() {
       <div class="w-full bg-white/20 rounded-full h-2">
         <div class="bg-white rounded-full h-2 transition-all duration-500" style="width: ${totalPertemuan > 0 ? (totalDinilai/totalPertemuan)*100 : 0}%"></div>
       </div>
-      <p class="text-[10px] text-white/70">📌 5 domain dinilai sekaligus per pertemuan</p>
+      <p class="text-[10px] text-white/70">📌 Lakukan penilaian untuk setiap pertemuan</p>
     </div>`;
   infoBox.classList.remove("hidden");
 
@@ -570,7 +570,7 @@ function renderFormPenilaian5Domain(siswa, pertemuan, materi) {
       <div class="space-y-3">${domainCards}</div>
 
       <button onclick="submitPenilaianBatch()" class="w-full gradient-purple text-white font-bold py-4 rounded-2xl active:scale-[0.98] transition-all shadow-lg shadow-purple-200 sticky bottom-2">
-        📤 Simpan Semua Penilaian (5 Domain)
+        📤 Simpan Penilaian
       </button>
     </div>`;
 
