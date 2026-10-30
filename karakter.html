@@ -501,7 +501,10 @@ async function openMateri(id) {
     <div class="course-card">
       <div class="tag">Materi Pembelajaran</div>
       <h3>${esc(k.judul)}</h3>
-      ${k.dalil ? `<div class="dalil-box">${esc(k.dalil)}</div>` : ''}
+      ${(k.dalil && k.dalil.length) ? `
+  <div class="dalil-box">
+    ${k.dalil.map(d => `<div style="margin-bottom:8px;">${esc(d)}</div>`).join('')}
+  </div>` : ''}
     </div>
 
     <div class="white-card">
@@ -524,13 +527,24 @@ async function openMateri(id) {
         <svg class="icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Contoh Praktik
       </h4>
-      <table class="praktik-table">
-        <tr><th>Salah</th><th>Benar</th></tr>
-        <tr>
-          <td class="salah">${esc(k.contoh_salah)}</td>
-          <td class="benar">${esc(k.contoh_benar)}</td>
-        </tr>
-      </table>
+const salahArr = k.contoh_salah || [];
+const benarArr = k.contoh_benar || [];
+const rowCount = Math.max(salahArr.length, benarArr.length);
+
+html += `
+  <table class="praktik-table">
+    <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
+    ${rowCount === 0
+      ? `<tr><td colspan="2" style="text-align:center; color:var(--text-gray);">Belum ada contoh</td></tr>`
+      : Array.from({length: rowCount}).map((_, i) => `
+          <tr>
+            <td class="salah">${esc(salahArr[i] || '')}</td>
+            <td class="benar">${esc(benarArr[i] || '')}</td>
+          </tr>
+        `).join('')
+    }
+  </table>
+`;
       
       <h4 style="margin-top:16px;">
         <svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
