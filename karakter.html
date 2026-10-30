@@ -110,7 +110,6 @@
   }
   .materi-card-item:active { transform: scale(0.98); border-color: var(--primary); }
   
-  /* Ikon Kartu yang sudah diperbaiki (Tidak Hitam) */
   .materi-icon-box {
     width: 48px; height: 48px; border-radius: 14px; background: var(--primary-light);
     display: flex; align-items: center; justify-content: center; color: var(--primary); flex-shrink: 0;
@@ -135,7 +134,6 @@
   .course-card::after { content: ''; position: absolute; top: -30px; right: -30px; width: 120px; height: 120px; background: rgba(255,255,255,0.1); border-radius: 50%; }
   .course-card .tag { background: rgba(255,255,255,0.2); padding: 6px 12px; border-radius: var(--radius-pill); font-size: 10px; display: inline-block; margin-bottom: 12px; }
   .course-card h3 { font-size: 20px; margin-bottom: 8px; font-weight: 600; position: relative; z-index: 1; }
-  .course-card .dalil-box { background: rgba(255,255,255,0.15); border-radius: 12px; padding: 12px; font-size: 14px; text-align: right; direction: rtl; line-height: 1.8; margin-top: 16px; border: 1px solid rgba(255,255,255,0.2); }
 
   .white-card { background: var(--white); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(0,0,0,0.04); border: 1px solid #F0F0F0; }
   .white-card h4 { font-size: 15px; margin-bottom: 12px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
@@ -144,11 +142,22 @@
   .video-container { border-radius: 12px; overflow: hidden; margin: 12px 0; aspect-ratio: 16/9; background: #000; }
   .video-container iframe { width: 100%; height: 100%; border: none; }
 
+  /* TABEL PRAKTIK */
   .praktik-table { width: 100%; border-collapse: collapse; font-size: 12px; margin-top: 8px; border-radius: 12px; overflow: hidden; }
   .praktik-table th { background: #F8F9FA; padding: 10px; text-align: left; border-bottom: 1px solid #EEE; }
   .praktik-table td { padding: 10px; border-bottom: 1px solid #EEE; vertical-align: top; }
   .praktik-table td.salah { color: var(--danger); background: #FFF5F5; }
   .praktik-table td.benar { color: var(--success); background: #F0FFF4; }
+
+  /* TABEL DALIL & FONT CONTROL */
+  .dalil-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 8px; border-radius: 12px; overflow: hidden; border: 1px solid #EEE; }
+  .dalil-table th { background: #F8F9FA; padding: 10px; text-align: left; border-bottom: 1px solid #EEE; font-size: 12px; }
+  .dalil-table td { padding: 12px; border-bottom: 1px solid #EEE; vertical-align: top; }
+  .dalil-table td.arab { text-align: right; direction: rtl; font-size: 18px; line-height: 1.8; font-family: 'Traditional Arabic', 'Amiri', serif; width: 50%; }
+  .dalil-table td.arti { font-size: 12px; color: var(--text-gray); font-style: italic; line-height: 1.6; width: 50%; }
+  
+  .font-control { display: flex; gap: 6px; align-items: center; margin-bottom: 8px; justify-content: flex-end; }
+  .font-control span { font-size: 10px; color: var(--text-gray); }
 
   /* Evaluasi Section */
   .eval-section { margin-top: 16px; padding-top: 16px; border-top: 1.5px dashed #EEE; }
@@ -175,7 +184,7 @@
     display: flex; justify-content: space-around; align-items: center;
     padding: 12px 20px; box-shadow: 0 10px 30px rgba(0,0,0,0.1); border: 1px solid #F0F0F0;
   }
-  .bottom-nav button { background: none; border: none; color: var(--text-gray); cursor: pointer; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.3s; }
+  .bottom-nav button { background: none; border: none; color: var(--text-gray); cursor: pointer; padding: 8px; display: flex; flex-direction: column; align-items: center; gap: 4px; transition: 0.3s; position: relative; }
   .bottom-nav button span { font-size: 10px; font-weight: 500; }
   .bottom-nav button.active { color: var(--primary); }
   .bottom-nav button.active::after { content: ''; position: absolute; bottom: 6px; width: 4px; height: 4px; background: var(--primary); border-radius: 50%; }
@@ -194,6 +203,10 @@
   table.data-table { width: 100%; border-collapse: collapse; font-size: 12px; white-space: nowrap; }
   table.data-table th, table.data-table td { padding: 10px; border-bottom: 1px solid #EEE; text-align: left; }
   table.data-table th { background: #F8F9FA; font-weight: 600; color: var(--text-dark); }
+
+  /* Dynamic Form Styles */
+  .dynamic-list { margin-bottom: 8px; }
+  .dynamic-row textarea { resize: vertical; }
 </style>
 </head>
 <body>
@@ -202,13 +215,12 @@
 
   <!-- ================= VIEW: LOGIN ================= -->
   <section id="view-login">
-    <!-- GANTI URL GAMBAR DI SINI -->
     <div class="login-image-container">
-      <img src="https://cdni.iconscout.com/illustration/premium/thumb/online-education-4445793-3682393.png" alt="Ilustrasi Belajar">
+      <img src="https://i.imgur.com/9DoQmC7.png" alt="Ilustrasi Belajar">
     </div>
 
-    <h1>Learn Character,<br>Achieve Anywhere.</h1>
-    <p>Platform e-course eksklusif untuk membentuk karakter generus unggul, berakhlak mulia, dan mandiri.</p>
+    <h1>Pendidikan<br>29 Karakter Luhur</h1>
+    <p>Platform  eksklusif untuk membentuk generus yang memiliki 29 karakter luhur.</p>
 
     <div class="input-group">
       <label>Username</label>
@@ -221,7 +233,7 @@
 
     <button class="btn-primary" id="btnLogin" onclick="doLogin()">
       <svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg>
-      Get Started
+      Masuk
     </button>
   </section>
 
@@ -260,6 +272,7 @@ const API_URL = 'https://script.google.com/macros/s/AKfycbxkb8y8why7CV8G66HlPtiF
 // STATE
 // ============================================================
 let state = { user: null, karakter: [], generus: [], evaluasi: [], rekap: null, activeMateri: null };
+let editingKarakter = null;
 
 // ============================================================
 // API HELPER
@@ -291,19 +304,24 @@ function esc(s) {
   return String(s == null ? '' : s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 }
 
+function toEmbed(url) {
+  if (!url) return '';
+  const m = String(url).match(/(?:youtu\.be\/|youtube\.com\/(?:watch\?v=|embed\/|shorts\/))([\w-]{11})/);
+  return m ? `https://www.youtube.com/embed/${m[1]}` : url;
+}
+
 // ============================================================
-// LOGIN (TANPA DROPDOWN ROLE)
+// LOGIN
 // ============================================================
 async function doLogin() {
   const username = document.getElementById('loginUser').value.trim();
-  const password = document.getElementById('loginPass').value; // <-- Ambil password
+  const password = document.getElementById('loginPass').value;
 
   if (!username || !password) { toast('Username & Password wajib diisi', true); return; }
   
   const btn = document.getElementById('btnLogin');
   btn.innerHTML = 'Memuat...'; btn.disabled = true;
 
-  // Kirim username & password saja (TANPA role)
   const r = await api('login', { username, password }); 
 
   btn.innerHTML = '<svg class="icon" viewBox="0 0 24 24"><path d="M5 12h14M12 5l7 7-7 7"/></svg> Get Started';
@@ -312,10 +330,8 @@ async function doLogin() {
   if (r.success) {
     state.user = r.user;
     
-    // Set Header secara Dinamis
     document.getElementById('userInfo').textContent = r.user.nama || r.user.username;
     
-    // Cek Role untuk Sub-Header
     let subText = 'Admin Pusat';
     if (r.user.role === 'kelompok' && r.user.kelompok) subText = r.user.kelompok;
     if (r.user.role === 'desa' && r.user.desa) subText = r.user.desa;
@@ -328,7 +344,7 @@ async function doLogin() {
     buildNavigation();
     await loadKarakter();
     await loadGenerus();
-    switchTab('materi'); // Langsung ke halaman materi
+    switchTab('materi');
   } else {
     toast(r.message || 'Login gagal', true);
   }
@@ -339,6 +355,7 @@ document.getElementById('loginPass').addEventListener('keypress', e => { if (e.k
 function logout() {
   if (!confirm('Keluar dari akun?')) return;
   state = { user: null, karakter: [], generus: [], evaluasi: [], rekap: null, activeMateri: null };
+  editingKarakter = null;
   document.getElementById('view-login').classList.remove('hidden');
   document.getElementById('view-app').classList.add('hidden');
   document.getElementById('loginUser').value = '';
@@ -402,6 +419,7 @@ function buildNavigation() {
   if (role === 'admin') {
     items = [
       { id: 'materi', label: 'Materi', icon: ICONS.materi },
+      { id: 'karakter', label: 'Kelola', icon: ICONS.materi },
       { id: 'user', label: 'User', icon: ICONS.user },
       { id: 'import', label: 'Import', icon: ICONS.import },
       { id: 'logout', label: 'Keluar', icon: ICONS.logout }
@@ -440,6 +458,7 @@ function switchTab(id) {
 
   const map = {
     'materi': renderMateriPage,
+    'karakter': renderAdminKarakter,
     'user': renderAdminUser,
     'import': renderAdminImport,
     'rekap': renderRekapPage,
@@ -449,7 +468,7 @@ function switchTab(id) {
 }
 
 // ============================================================
-// HALAMAN DAFTAR MATERI (KARTU)
+// HALAMAN DAFTAR MATERI
 // ============================================================
 async function renderMateriPage() {
   const el = document.getElementById('tabContent');
@@ -459,8 +478,7 @@ async function renderMateriPage() {
   }
   
   let html = `<div class="materi-grid">`;
-  state.karakter.forEach((k, index) => {
-    // SVG Ikon Buku Minimalis (Tidak Hitam)
+  state.karakter.forEach((k) => {
     const iconBook = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>`;
     
     html += `
@@ -481,7 +499,7 @@ async function renderMateriPage() {
 }
 
 // ============================================================
-// HALAMAN DETAIL MATERI
+// HALAMAN DETAIL MATERI (PENGERTIAN, DALIL, CONTOH, REFLEKSI, KOMITMEN)
 // ============================================================
 async function openMateri(id) {
   state.activeMateri = state.karakter.find(k => String(k.id) === String(id));
@@ -501,84 +519,174 @@ async function openMateri(id) {
     <div class="course-card">
       <div class="tag">Materi Pembelajaran</div>
       <h3>${esc(k.judul)}</h3>
-      ${(k.dalil && k.dalil.length) ? `
-  <div class="dalil-box">
-    ${k.dalil.map(d => `<div style="margin-bottom:8px;">${esc(d)}</div>`).join('')}
-  </div>` : ''}
     </div>
 
     <div class="white-card">
+      <!-- 1. PENGERTIAN -->
       <h4>
         <svg class="icon-sm" viewBox="0 0 24 24"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
         Pengertian
       </h4>
       <p>${esc(k.pengertian)}</p>
-      
+
       ${k.video_url ? `
       <h4 style="margin-top:16px;">
         <svg class="icon-sm" viewBox="0 0 24 24"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>
         Video Pembelajaran
       </h4>
       <div class="video-container">
-        <iframe src="${esc(k.video_url)}" allowfullscreen></iframe>
+        <iframe src="${esc(toEmbed(k.video_url))}" allowfullscreen></iframe>
       </div>` : ''}
-      
-      <h4 style="margin-top:16px;">
+
+      <!-- 2. DALIL-DALIL & ARTI -->
+      <h4 style="margin-top:20px; justify-content:space-between;">
+        <span style="display:flex; align-items:center; gap:8px;">
+          <svg class="icon-sm" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/></svg>
+          Dalil-Dalil & Artinya
+        </span>
+        <div class="font-control">
+          <span>A-</span>
+          <button class="btn-sm btn-outline" style="padding:2px 8px;" onclick="changeFontSize(-2)">A-</button>
+          <button class="btn-sm btn-outline" style="padding:2px 8px;" onclick="changeFontSize(2)">A+</button>
+        </div>
+      </h4>
+      ${renderDalilTable(k)}
+
+      <!-- 3. CONTOH PRAKTIK -->
+      <h4 style="margin-top:20px;">
         <svg class="icon-sm" viewBox="0 0 24 24"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
         Contoh Praktik
       </h4>
-const salahArr = k.contoh_salah || [];
-const benarArr = k.contoh_benar || [];
-const rowCount = Math.max(salahArr.length, benarArr.length);
+      ${renderPraktikTable(k)}
 
-html += `
-  <table class="praktik-table">
-    <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
-    ${rowCount === 0
-      ? `<tr><td colspan="2" style="text-align:center; color:var(--text-gray);">Belum ada contoh</td></tr>`
-      : Array.from({length: rowCount}).map((_, i) => `
-          <tr>
-            <td class="salah">${esc(salahArr[i] || '')}</td>
-            <td class="benar">${esc(benarArr[i] || '')}</td>
-          </tr>
-        `).join('')
-    }
-  </table>
-`;
-      
-      <h4 style="margin-top:16px;">
+      <!-- 4. REFLEKSI & AFIRMASI -->
+      <h4 style="margin-top:20px;">
         <svg class="icon-sm" viewBox="0 0 24 24"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
         Refleksi & Afirmasi
       </h4>
-      <p style="background:#F8F9FA; padding:12px; border-radius:8px; font-size:12px;">${esc(k.refleksi)}</p>
-      <p style="margin-top:8px; font-weight:600; color:var(--primary); font-size:12px;">"${esc(k.afirmasi)}" (dibaca 3x)</p>
+      <div style="background:#F8F9FA; padding:12px; border-radius:8px; font-size:12px; margin-bottom:8px; white-space:pre-wrap;">${esc(k.refleksi)}</div>
+      <p style="font-weight:600; color:var(--primary); font-size:12px;">"${esc(k.afirmasi)}" (dibaca 3x)</p>
+
+      <!-- 5. KESIMPULAN & KOMITMEN -->
+      <h4 style="margin-top:20px;">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        Menyimpulkan & Komitmen
+      </h4>
+      ${renderKesimpulan()}
+    </div>
   `;
 
+  // Render Evaluasi jika role kelompok
   if (state.user.role === 'kelompok') {
     html += `
-      <div class="eval-section">
-        <h4>
-          <svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-          Evaluasi Materi Ini
-        </h4>
-        <select id="jenjang_${k.id}" onchange="renderEvalList('${k.id}')">
-          <option value="">-- Pilih Jenjang --</option>
-          <option value="Caberawit">Caberawit</option>
-          <option value="Pra Remaja">Pra Remaja</option>
-          <option value="Remaja">Remaja</option>
-          <option value="Pra Nikah">Pra Nikah</option>
-        </select>
-        <div id="eval_list_${k.id}" class="eval-list">
-          <p style="font-size:12px; color:var(--text-gray); text-align:center; padding:10px 0;">Pilih jenjang untuk melihat daftar nama.</p>
+      <div class="white-card">
+        <div class="eval-section" style="border-top:none; margin-top:0; padding-top:0;">
+          <h4>
+            <svg class="icon-sm" viewBox="0 0 24 24"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            Evaluasi Materi Ini
+          </h4>
+          <select id="jenjang_${k.id}" onchange="renderEvalList('${k.id}')">
+            <option value="">-- Pilih Jenjang --</option>
+            <option value="Caberawit">Caberawit</option>
+            <option value="Pra Remaja">Pra Remaja</option>
+            <option value="Remaja">Remaja</option>
+            <option value="Pra Nikah">Pra Nikah</option>
+          </select>
+          <div id="eval_list_${k.id}" class="eval-list">
+            <p style="font-size:12px; color:var(--text-gray); text-align:center; padding:10px 0;">Pilih jenjang untuk melihat daftar nama.</p>
+          </div>
         </div>
       </div>
     `;
   }
 
-  html += `</div>`;
   el.innerHTML = html;
 }
 
+// Fungsi memisahkan Arab & Arti
+function parseDalil(d) {
+  if (!d) return { arab: '', arti: '' };
+  const parts = d.split('\n\n');
+  if (parts.length > 1) {
+    return { arab: parts[0], arti: parts[1].replace(/^"|"$/g, '') };
+  }
+  const isArabic = /[\u0600-\u06FF]/.test(d);
+  return isArabic ? { arab: d, arti: '' } : { arab: '', arti: d };
+}
+
+// Render Tabel Dalil
+function renderDalilTable(k) {
+  const dalilArr = Array.isArray(k.dalil) ? k.dalil : (k.dalil ? [k.dalil] : []);
+  
+  if (!dalilArr.length) {
+    return `<p style="font-size:12px; color:var(--text-gray);">Belum ada dalil.</p>`;
+  }
+
+  return `
+    <table class="dalil-table" id="dalilTable">
+      <tr><th>Dalil (Arab)</th><th>Terjemahan</th></tr>
+      ${dalilArr.map(d => {
+        const { arab, arti } = parseDalil(d);
+        return `
+          <tr>
+            <td class="arab">${esc(arab)}</td>
+            <td class="arti">${esc(arti)}</td>
+          </tr>
+        `;
+      }).join('')}
+    </table>
+  `;
+}
+
+// Fungsi perbesar/perkecil font arab
+function changeFontSize(delta) {
+  const table = document.getElementById('dalilTable');
+  if (!table) return;
+  const cells = table.querySelectorAll('td.arab');
+  cells.forEach(cell => {
+    const currentSize = parseFloat(window.getComputedStyle(cell).fontSize);
+    const newSize = Math.max(12, Math.min(36, currentSize + delta)); 
+    cell.style.fontSize = newSize + 'px';
+  });
+}
+
+// Render Tabel Contoh Praktik
+function renderPraktikTable(k) {
+  const salahArr = k.contoh_salah || [];
+  const benarArr = k.contoh_benar || [];
+  const rowCount = Math.max(salahArr.length, benarArr.length);
+
+  if (rowCount === 0) {
+    return `<table class="praktik-table">
+      <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
+      <tr><td colspan="2" style="text-align:center; color:var(--text-gray);">Belum ada contoh</td></tr>
+    </table>`;
+  }
+
+  return `<table class="praktik-table">
+    <tr><th>❌ Salah</th><th>✅ Benar</th></tr>
+    ${Array.from({length: rowCount}).map((_, i) => `
+      <tr>
+        <td class="salah">${esc(salahArr[i] || '')}</td>
+        <td class="benar">${esc(benarArr[i] || '')}</td>
+      </tr>
+    `).join('')}
+  </table>`;
+}
+
+// Render Bagian Kesimpulan & Komitmen
+function renderKesimpulan() {
+  return `
+    <div style="font-size:12px; color:var(--text-dark); line-height:1.6;">
+      <p style="margin-bottom:8px;">Generus melakukan penilaian diri dengan menuliskan hal-hal yang perlu diperbaiki dalam dirinya mengenai materi ini dan menuliskan langkah-langkah yang akan dilakukan sebagai komitmen untuk mengamalkannya.</p>
+      <p>Generus menuliskan praktik baik yang sudah dilakukan dan berkomitmen untuk mempertahankannya.</p>
+      <textarea class="form-control" style="margin-top:12px; background:#FFF; border-color:#DDD; font-size:12px;" rows="4" placeholder="Tuliskan komitmen & penilaian dirimu di sini..."></textarea>
+      <button class="btn-primary" style="padding:10px; font-size:12px;" onclick="toast('Komitmen berhasil disimpan!')">Simpan Komitmen</button>
+    </div>
+  `;
+}
+
+// Render Eval List
 function renderEvalList(karakterId) {
   const jenjang = document.getElementById(`jenjang_${karakterId}`).value;
   const container = document.getElementById(`eval_list_${karakterId}`);
@@ -599,14 +707,15 @@ function renderEvalList(karakterId) {
     const ev = state.evaluasi.find(e => String(e.karakter_id) === String(karakterId) && String(e.generus_nama) === String(g.nama));
     const status = ev ? ev.status : 'Belum';
     
+    const encodedNama = encodeURIComponent(g.nama);
     html += `
       <div class="eval-item">
         <span class="name">${esc(g.nama)}</span>
         <div class="actions">
-          <button class="btn-sm ${status==='Sudah'?'btn-sudah':'btn-outline'}" onclick="setStatus('${karakterId}','${esc(g.nama)}','Sudah')">
+          <button class="btn-sm ${status==='Sudah'?'btn-sudah':'btn-outline'}" onclick="setStatus('${karakterId}', decodeURIComponent('${encodedNama}'), 'Sudah')">
             ${status==='Sudah' ? '✓ Sudah' : 'Sudah'}
           </button>
-          <button class="btn-sm ${status==='Belum'?'btn-belum':'btn-outline'}" onclick="setStatus('${karakterId}','${esc(g.nama)}','Belum')">
+          <button class="btn-sm ${status==='Belum'?'btn-belum':'btn-outline'}" onclick="setStatus('${karakterId}', decodeURIComponent('${encodedNama}'), 'Belum')">
             ${status==='Belum' ? '✗ Belum' : 'Belum'}
           </button>
         </div>
@@ -631,6 +740,298 @@ async function setStatus(karakter_id, nama, status) {
     if (selectEl) renderEvalList(karakter_id);
   }
   else toast(r.message, true);
+}
+
+// ============================================================
+// ADMIN — KELOLA KARAKTER
+// ============================================================
+function renderAdminKarakter() {
+  const el = document.getElementById('tabContent');
+  editingKarakter = null;
+
+  el.innerHTML = `
+    <div class="white-card">
+      <h4 style="justify-content:space-between;">
+        <span>Kelola Materi Karakter</span>
+        <button class="btn-sm btn-sudah" onclick="showKarakterForm()">+ Tambah</button>
+      </h4>
+      <button class="btn-primary" style="background:var(--white); color:var(--primary); border:1.5px solid var(--primary); box-shadow:none; margin-bottom:12px;" onclick="showPDFUpload()">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Upload PDF → Ekstrak Otomatis
+      </button>
+      <div id="karakterListContainer"></div>
+    </div>
+    <div id="karakterFormContainer"></div>
+  `;
+
+  renderKarakterList();
+}
+
+function renderKarakterList() {
+  const container = document.getElementById('karakterListContainer');
+  if (!container) return;
+  
+  if (!state.karakter.length) {
+    container.innerHTML = '<p style="font-size:12px; color:var(--text-gray); text-align:center; padding:20px 0;">Belum ada materi. Klik "+ Tambah" atau upload PDF.</p>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="table-responsive">
+      <table class="data-table">
+        <tr><th>#</th><th>Judul</th><th>Dalil</th><th>Contoh</th><th>Aksi</th></tr>
+        ${state.karakter.map((k, i) => `
+          <tr>
+            <td>${k.urutan || i+1}</td>
+            <td><strong>${esc(k.judul)}</strong></td>
+            <td>${(k.dalil || []).length}</td>
+            <td>${(k.contoh_salah || []).length}</td>
+            <td style="white-space:nowrap;">
+              <button class="btn-sm btn-sudah" onclick="editKarakter('${k.id}')">Edit</button>
+              <button class="btn-sm btn-belum" onclick="hapusKarakter('${k.id}')">Hapus</button>
+            </td>
+          </tr>
+        `).join('')}
+      </table>
+    </div>
+  `;
+}
+
+function editKarakter(id) {
+  editingKarakter = state.karakter.find(k => String(k.id) === String(id));
+  if (!editingKarakter) return;
+  showKarakterForm(editingKarakter);
+}
+
+function showKarakterForm(k = null) {
+  editingKarakter = k;
+  const isEdit = !!k;
+  const data = k || {
+    judul: '', pengertian: '', dalil: [], video_url: '',
+    contoh_salah: [], contoh_benar: [], refleksi: '', afirmasi: '', urutan: state.karakter.length + 1
+  };
+
+  const container = document.getElementById('karakterFormContainer');
+  container.innerHTML = `
+    <div class="white-card" style="border:2px solid var(--primary);">
+      <h4>${isEdit ? '✏️ Edit Karakter' : '➕ Tambah Karakter Baru'}</h4>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Judul</label>
+      <input id="f_judul" class="form-control" value="${esc(data.judul)}" placeholder="cth: Akhlakul Karimah">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Pengertian</label>
+      <textarea id="f_pengertian" class="form-control" rows="3" placeholder="Pengertian materi...">${esc(data.pengertian)}</textarea>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Video URL (opsional)</label>
+      <input id="f_video" class="form-control" value="${esc(data.video_url)}" placeholder="https://youtu.be/...">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Dalil-Dalil (bisa lebih dari 1)</label>
+      <div id="dalilList" class="dynamic-list"></div>
+      <button class="btn-sm btn-outline" style="margin-bottom:12px;" onclick="addDalilRow()">+ Tambah Dalil</button>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Contoh Praktik (pasangan Salah ↔ Benar)</label>
+      <div id="contohList" class="dynamic-list"></div>
+      <button class="btn-sm btn-outline" style="margin-bottom:12px;" onclick="addContohRow()">+ Tambah Baris Contoh</button>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Refleksi</label>
+      <textarea id="f_refleksi" class="form-control" rows="3" placeholder="Pertanyaan refleksi...">${esc(data.refleksi)}</textarea>
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Afirmasi</label>
+      <input id="f_afirmasi" class="form-control" value="${esc(data.afirmasi)}" placeholder="Insya Alloh saya mampu...">
+
+      <label style="font-size:11px; font-weight:600; margin-bottom:4px; display:block;">Urutan</label>
+      <input id="f_urutan" type="number" class="form-control" value="${data.urutan || 1}">
+
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn-primary" style="flex:1;" onclick="saveKarakterSubmit(${isEdit ? `'${k.id}'` : 'null'})">
+          ${isEdit ? '💾 Simpan Perubahan' : '💾 Simpan'}
+        </button>
+        <button class="btn-primary" style="flex:0 0 auto; background:#EEE; color:var(--text-dark); box-shadow:none;" onclick="cancelKarakterForm()">Batal</button>
+      </div>
+    </div>
+  `;
+
+  const dalilArr = data.dalil && data.dalil.length ? data.dalil : [''];
+  dalilArr.forEach(d => addDalilRow(d));
+
+  const salahArr = data.contoh_salah || [];
+  const benarArr = data.contoh_benar || [];
+  const rowCount = Math.max(salahArr.length, benarArr.length, 1);
+  for (let i = 0; i < rowCount; i++) {
+    addContohRow(salahArr[i] || '', benarArr[i] || '');
+  }
+  
+  container.scrollIntoView({ behavior: 'smooth' });
+}
+
+function cancelKarakterForm() {
+  document.getElementById('karakterFormContainer').innerHTML = '';
+  editingKarakter = null;
+}
+
+function addDalilRow(value = '') {
+  const list = document.getElementById('dalilList');
+  if (!list) return;
+  const idx = list.children.length;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.style.cssText = 'display:flex; gap:6px; margin-bottom:6px;';
+  div.innerHTML = `
+    <textarea class="form-control dalil-input" rows="4" style="flex:1; margin-bottom:0;" placeholder="Dalil ${idx + 1}. Tulis Teks Arab, tekan ENTER 2x, lalu tulis artinya.">${esc(value)}</textarea>
+    <button class="btn-sm btn-belum" style="padding:6px 10px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+function addContohRow(salah = '', benar = '') {
+  const list = document.getElementById('contohList');
+  if (!list) return;
+  const div = document.createElement('div');
+  div.className = 'dynamic-row';
+  div.style.cssText = 'display:grid; grid-template-columns:1fr 1fr auto; gap:6px; margin-bottom:6px;';
+  div.innerHTML = `
+    <textarea class="form-control contoh-salah" rows="2" style="margin-bottom:0; font-size:12px;" placeholder="❌ Salah...">${esc(salah)}</textarea>
+    <textarea class="form-control contoh-benar" rows="2" style="margin-bottom:0; font-size:12px;" placeholder="✅ Benar...">${esc(benar)}</textarea>
+    <button class="btn-sm btn-belum" style="padding:6px 10px;" onclick="this.parentElement.remove()">✕</button>
+  `;
+  list.appendChild(div);
+}
+
+async function saveKarakterSubmit(id) {
+  const judul = document.getElementById('f_judul').value.trim();
+  if (!judul) { toast('Judul wajib diisi', true); return; }
+
+  const dalil = Array.from(document.querySelectorAll('.dalil-input'))
+    .map(t => t.value.trim()).filter(v => v);
+
+  const contohSalah = Array.from(document.querySelectorAll('.contoh-salah'))
+    .map(t => t.value.trim());
+  const contohBenar = Array.from(document.querySelectorAll('.contoh-benar'))
+    .map(t => t.value.trim());
+
+  const payload = {
+    id: id || undefined,
+    judul,
+    pengertian: document.getElementById('f_pengertian').value.trim(),
+    video_url: document.getElementById('f_video').value.trim(),
+    dalil,
+    contoh_salah: contohSalah,
+    contoh_benar: contohBenar,
+    refleksi: document.getElementById('f_refleksi').value.trim(),
+    afirmasi: document.getElementById('f_afirmasi').value.trim(),
+    urutan: Number(document.getElementById('f_urutan').value) || 1
+  };
+
+  const r = await api('saveKarakterForm', payload);
+  if (r.success) {
+    toast(r.message);
+    await loadKarakter();
+    document.getElementById('karakterFormContainer').innerHTML = '';
+    renderKarakterList();
+  } else {
+    toast(r.message, true);
+  }
+}
+
+async function hapusKarakter(id) {
+  if (!confirm('Hapus materi ini?')) return;
+  const r = await api('deleteKarakter', { id });
+  if (r.success) {
+    toast(r.message);
+    await loadKarakter();
+    renderKarakterList();
+  } else toast(r.message, true);
+}
+
+// ============================================================
+// UPLOAD PDF → PARSE OTOMATIS
+// ============================================================
+function showPDFUpload() {
+  const el = document.getElementById('tabContent');
+  el.innerHTML = `
+    <button class="back-btn" onclick="renderAdminKarakter()">← Kembali</button>
+    <div class="white-card">
+      <h4>Upload PDF Materi</h4>
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:12px;">
+        PDF akan diekstrak otomatis (OCR). Pastikan PDF berisi teks (bukan scan gambar blur).
+      </p>
+      <input id="pdf_file" type="file" accept=".pdf" class="form-control" style="padding:10px;">
+      <button class="btn-primary" onclick="uploadAndParsePDF()">
+        <svg class="icon-sm" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        Ekstrak PDF
+      </button>
+    </div>
+    <div id="pdfPreviewContainer"></div>
+  `;
+}
+
+async function uploadAndParsePDF() {
+  const file = document.getElementById('pdf_file').files[0];
+  if (!file) { toast('Pilih file PDF dulu', true); return; }
+
+  toast('Memproses PDF... (bisa 10-30 detik)');
+
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const base64 = e.target.result.split(',')[1];
+    const r = await api('parsePDF', { fileName: file.name, fileBase64: base64 });
+
+    if (!r.success) { toast(r.message || 'Gagal parse', true); return; }
+
+    renderPDFPreview(r.data);
+  };
+  reader.readAsDataURL(file);
+}
+
+function renderPDFPreview(materiList) {
+  const container = document.getElementById('pdfPreviewContainer');
+  if (!materiList.length) {
+    container.innerHTML = '<div class="white-card"><p>Tidak ada materi terdeteksi. Cek format PDF atau isi manual.</p></div>';
+    return;
+  }
+
+  container.innerHTML = `
+    <div class="white-card">
+      <h4>✅ ${materiList.length} Materi Terdeteksi</h4>
+      <p style="font-size:12px; color:var(--text-gray); margin-bottom:12px;">
+        Review dulu, lalu klik <strong>Simpan Semua</strong>. Materi yang judulnya sudah ada akan dilewati.
+      </p>
+      ${materiList.map((m, i) => `
+        <div style="background:#F8F9FA; padding:12px; border-radius:12px; margin-bottom:8px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:6px;">
+            <strong style="font-size:13px;">${esc(m.judul)}</strong>
+            <input type="checkbox" class="pdf-materi-check" data-idx="${i}" checked style="width:18px; height:18px;">
+          </div>
+          <div style="font-size:11px; color:var(--text-gray);">
+            📖 ${(m.dalil || []).length} dalil &nbsp;|&nbsp; 
+            ❌ ${(m.contoh_salah || []).length} contoh salah &nbsp;|&nbsp; 
+            ✅ ${(m.contoh_benar || []).length} contoh benar
+          </div>
+        </div>
+      `).join('')}
+      <button class="btn-primary" style="margin-top:12px;" onclick="simpanPDFMateri()">
+        💾 Simpan Semua yang Dicentang
+      </button>
+    </div>
+  `;
+  window.__parsedMateri = materiList;
+}
+
+async function simpanPDFMateri() {
+  const checked = Array.from(document.querySelectorAll('.pdf-materi-check:checked'))
+    .map(cb => window.__parsedMateri[Number(cb.dataset.idx)]);
+
+  if (!checked.length) { toast('Tidak ada materi dicentang', true); return; }
+
+  let added = 0, skipped = 0;
+  for (const m of checked) {
+    const r = await api('saveKarakterForm', m);
+    if (r.success) added++; else skipped++;
+  }
+
+  toast(`${added} materi tersimpan, ${skipped} gagal/dilewati`);
+  await loadKarakter();
+  renderAdminKarakter();
 }
 
 // ============================================================
@@ -822,7 +1223,7 @@ async function renderRekapPage() {
     <div class="course-card" style="background:linear-gradient(135deg, #00D2FF 0%, #0084C7 100%);">
       <div class="tag">${scope}</div>
       <h3>${esc(userScope)}</h3>
-      <div class="meta" style="margin-top:12px; gap:24px;">
+      <div class="meta" style="margin-top:12px; gap:24px; display:flex;">
         <div>
           <div style="font-size:24px; font-weight:700;">${state.rekap.totalGenerus}</div>
           <div style="font-size:10px; opacity:0.8;">Total Generus</div>
